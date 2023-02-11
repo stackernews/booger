@@ -1,0 +1,2 @@
+# booger
+A nostr relay
