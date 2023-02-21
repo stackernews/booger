@@ -1,3 +1,4 @@
+![booger](https://user-images.githubusercontent.com/34140557/220430971-3d7a0cc1-1fca-4f25-ba90-791cbedb9942.png)
 # booger
 A nostr relay.
 
@@ -17,6 +18,11 @@ A nostr relay.
 - all booger processes in the cluster `LISTEN event` and when notified check sqlite for matching filters and send to corresponding websockets
 
 # booger in pictures
+### booger cluster
+![booger cluster](https://user-images.githubusercontent.com/34140557/220431172-4876ed9d-77f2-471f-9152-75758ac76ed7.png)
+
+### booger process
+![booger process](https://user-images.githubusercontent.com/34140557/220431187-9ef249c2-30ba-45ab-a68c-1660b1f92ddc.png)
 
 # how to run
 0. install postgres and run it (welcome to programming)
@@ -33,7 +39,7 @@ A nostr relay.
 5. code golf
 
 # thanks to
-1. camari's nostream - i jacked the joi event and filter validation *and* the integration tests
-2. everyone working on nostr
+1. [camari's nostream](https://github.com/Cameri/nostream) - i jacked the joi event and filter validation *and* the integration tests
+2. everyone working on [nostr](https://github.com/nostr-protocol/nips)
 3. dad
 4. my cat dona, meow
