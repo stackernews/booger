@@ -1,12 +1,14 @@
 import { WebSocketServer } from 'ws'
-import createListener from 'pg-listen'
 import {
   closeSocket, closeSub, openSub as _openSub,
-  nextSocketId, forEachSub, sqliteInit
+  nextSocketId, sqliteInit
 } from './sqlite.js'
 import { eventSchema, filterSchema, validateSig } from './validate.js'
-import { forEachEvent, pgConfig, pgInit, storeNotify } from './pg.js'
+import { forEachEvent, pgInit, storeNotify } from './pg.js'
 import cluster from 'cluster'
+import http from 'http'
+import fs from 'fs'
+import { listenInit } from './listen.js'
 
 async function store (ws, event) {
   try {
@@ -40,12 +42,35 @@ if (process.env.WORKERS > 1 && cluster.isMaster) {
     console.log(`worker ${worker.process.pid} died`)
   })
 } else {
-  const wss = new WebSocketServer({ port: process.env.PORT || 8006 })
-  const sockets = new Map(); // map[socket id][websocket]
+  // nip 11
+  const server = http.createServer((req, res) => {
+    if (req.headers.accept === 'application/nostr+json') {
+      res.setHeader('Access-Control-Allow-Origin', '*')
+      res.setHeader('Access-Control-Allow-Methods', 'GET')
+      res.setHeader('Access-Control-Allow-Headers', '*')
+      fs.readFile('./NIP-11.json', (err, data) => {
+        res.writeHead(err ? 404 : 200, { 'Content-Type': 'application/json' })
+        res.end(data)
+      })
+    } else {
+      res.writeHead(404)
+      res.end()
+    }
+  })
 
+  const wss = new WebSocketServer({ noServer: true })
+  server.on('upgrade', function (request, socket, head) {
+    wss.handleUpgrade(request, socket, head, function (ws) {
+      wss.emit('connection', ws, request)
+    })
+  })
+  server.listen(process.env.port || 8006)
+
+  const sockets = new Map(); // map[socket id][websocket]
   (async () => {
     await sqliteInit()
     await pgInit()
+    await listenInit(sockets)
   })()
 
   wss.on('connection', async function connection (ws) {
@@ -89,34 +114,6 @@ if (process.env.WORKERS > 1 && cluster.isMaster) {
       ws.ping()
     })
   }, 30000)
-
-  //  listen for any recently received events
-  const listener = createListener(pgConfig);
-  (async () => {
-    listener.notifications.on('event', async e => {
-      try {
-        await forEachSub(e, (id, subId) => {
-          const ws = sockets.get(id)
-          if (!ws) return
-          ws.send(JSON.stringify(['EVENT', subId, e]))
-        })
-      } catch (e) {
-        console.error(e)
-      }
-    })
-
-    listener.events.on('error', err => {
-      console.error('fatal db connection error:', err)
-      process.exit(1)
-    })
-
-    process.on('exit', () => {
-      listener.close()
-    })
-
-    await listener.connect()
-    await listener.listenTo('event')
-  })()
 
   console.log(`booger process ${process.pid} started`)
 }

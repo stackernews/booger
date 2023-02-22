@@ -1,0 +1,21 @@
+{
+  "Name": "booger",
+  "Description": "a booger relay",
+  "PubKey": "",
+  "Contact": "",
+  "SupportedNIPs": [
+    1,
+    2,
+    4,
+    9,
+    11,
+    12,
+    15,
+    16,
+    20,
+    28,
+    33
+  ],
+  "Software": "https://github.com/huumn/booger",
+  "Version": ""
+}
