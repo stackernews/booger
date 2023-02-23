@@ -1,14 +1,27 @@
 import { WebSocketServer } from 'ws'
 import {
   closeSocket, closeSub, openSub as _openSub,
-  nextSocketId, sqliteInit
+  nextSocketId, sqliteInit, forEachSub
 } from './sqlite.js'
 import { eventSchema, filterSchema, validateSig } from './validate.js'
-import { forEachEvent, pgInit, storeNotify } from './pg.js'
+import { forEachEvent, listen, pgInit, storeNotify } from './pg.js'
 import cluster from 'cluster'
 import http from 'http'
 import fs from 'fs'
-import { listenInit } from './listen.js'
+
+if (process.env.WORKERS > 1 && cluster.isMaster) {
+  console.log(`booger master ${process.pid} is running`)
+
+  for (let i = 0; i < process.env.WORKERS; i++) {
+    cluster.fork()
+  }
+
+  cluster.on('exit', worker =>
+    console.log(`worker ${worker.process.pid} died`))
+} else {
+  letItRip()
+  console.log(`booger process ${process.pid} started`)
+}
 
 async function store (ws, event) {
   try {
@@ -31,17 +44,7 @@ async function openSub (ws, subId, ...filters) {
   ws.send(JSON.stringify(['EOSE', subId]))
 }
 
-if (process.env.WORKERS > 1 && cluster.isMaster) {
-  console.log(`booger master ${process.pid} is running`)
-
-  for (let i = 0; i < process.env.WORKERS; i++) {
-    cluster.fork()
-  }
-
-  cluster.on('exit', (worker, code, signal) => {
-    console.log(`worker ${worker.process.pid} died`)
-  })
-} else {
+async function letItRip () {
   // nip 11
   const server = http.createServer((req, res) => {
     if (req.headers.accept === 'application/nostr+json') {
@@ -66,12 +69,20 @@ if (process.env.WORKERS > 1 && cluster.isMaster) {
   })
   server.listen(process.env.port || 8006)
 
-  const sockets = new Map(); // map[socket id][websocket]
-  (async () => {
-    await sqliteInit()
-    await pgInit()
-    await listenInit(sockets)
-  })()
+  const sockets = new Map() // map[socket id][websocket]
+  await sqliteInit()
+  await pgInit()
+  await listen(async e => {
+    try {
+      await forEachSub(JSON.parse(e), (id, subId) => {
+        const ws = sockets.get(id)
+        if (!ws) return
+        ws.send(`["EVENT", "${subId}", ${e}]`)
+      })
+    } catch (e) {
+      console.error(e)
+    }
+  })
 
   wss.on('connection', async function connection (ws) {
     ws.id = await nextSocketId()
@@ -114,6 +125,4 @@ if (process.env.WORKERS > 1 && cluster.isMaster) {
       ws.ping()
     })
   }, 30000)
-
-  console.log(`booger process ${process.pid} started`)
 }

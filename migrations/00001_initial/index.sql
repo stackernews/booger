@@ -19,7 +19,7 @@ CREATE OR REPLACE FUNCTION jsonb_array_to_text_array(_js jsonb)
 'SELECT ARRAY(SELECT jsonb_array_elements_text(_js))';
 
 CREATE TABLE tag (
-    event_id CHAR(64) REFERENCES event(id) ON DELETE CASCADE,
+    event_id TEXT REFERENCES event(id) ON DELETE CASCADE,
     tag TEXT NOT NULL,
     values TEXT[] NOT NULL,
 
@@ -37,6 +37,26 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER event_notify_trigger
-  AFTER INSERT OR UPDATE ON event
+  AFTER INSERT ON event
   FOR EACH ROW
   EXECUTE PROCEDURE event_notify();
+
+-- nip 9
+CREATE FUNCTION event_prevent_deleted() RETURNS TRIGGER AS $$
+DECLARE
+BEGIN
+    IF EXISTS (
+      SELECT FROM event
+      JOIN tag
+        ON event.id = tag.event_id AND tag.tag = 'e' AND tag.values[1] = NEW.id
+      WHERE event.kind = 5 AND event.pubkey = NEW.pubkey) THEN
+      RAISE EXCEPTION 'invalid: note has been deleted';
+   END IF;
+   RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER event_prevent_deleted_trigger
+  BEFORE INSERT ON event
+  FOR EACH ROW
+  EXECUTE PROCEDURE event_prevent_deleted();
