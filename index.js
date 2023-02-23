@@ -19,7 +19,7 @@ if (process.env.WORKERS > 1 && cluster.isMaster) {
   cluster.on('exit', worker =>
     console.log(`worker ${worker.process.pid} died`))
 } else {
-  letItRip()
+  booger()
   console.log(`booger process ${process.pid} started`)
 }
 
@@ -44,7 +44,7 @@ async function openSub (ws, subId, ...filters) {
   ws.send(JSON.stringify(['EOSE', subId]))
 }
 
-async function letItRip () {
+async function booger () {
   // nip 11
   const server = http.createServer((req, res) => {
     if (req.headers.accept === 'application/nostr+json') {
