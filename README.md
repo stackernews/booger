@@ -3,7 +3,7 @@
 A nostr relay.
 
 # what booger does
-- supports many NIPs: 1, 2, 4, 9, 11, 12, 15, 16, 20, 28, 33 (I'll add more eventually)
+- supports many NIPs: 1, 2, 4, 9, 11, 12, 15, 16, 20, 28, 33, 40 (I'll add more eventually)
 - suitable for horizontally scaling websocket layer with a load balancer
 
 # what booger doesn't do (yet)

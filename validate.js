@@ -52,6 +52,21 @@ export const filterSchema = Joi.object({
   limit: Joi.number().min(0).multiple(1).max(5000)
 }).pattern(/^#[a-z]$/, Joi.array().items(Joi.string().max(1024)).max(256))
 
+export async function computeId ({
+  pubkey, created_at: createdAt, kind, tags, content
+}) {
+  const canon = [0, pubkey, createdAt, kind, tags, content]
+  const id = await secp256k1.utils
+    .sha256(Buffer.from(JSON.stringify(canon)))
+  return Buffer.from(id).toString('hex')
+}
+
+export async function validateId (event) {
+  if (event.id !== await computeId(event)) {
+    throw new Error('invalid: id is not the sha256 hash of note')
+  }
+}
+
 export async function validateSig ({ sig, id, pubkey }) {
   if (!await secp256k1.schnorr.verify(sig, id, pubkey)) {
     throw new Error('invalid: signature does not match pubkey')

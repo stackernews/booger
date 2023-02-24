@@ -41,7 +41,7 @@ export async function storeNotify (event) {
 
     let firstD = true
     for (const [tag, ...values] of tags) {
-    // nip 1 tags
+      // nip 1 tags
       line.push(pg`INSERT INTO tag (event_id, tag, values)
         VALUES (${id}, ${tag}, ${values})`)
 
@@ -49,6 +49,12 @@ export async function storeNotify (event) {
       if (kind === 5 && tag === 'e' && values.length) {
         line.push(pg`DELETE FROM event WHERE id = ${values[0]}
           AND pubkey = ${pubkey}`)
+      }
+
+      // nip 40 expiration
+      if (tag === 'expiration' &&
+        Number(values[0]) > Math.floor(Date.now() / 1000)) {
+        throw new Error('invalid: expired')
       }
 
       // nip 33 parameterized replacement
@@ -94,6 +100,8 @@ export async function forEachEvent (filters, cb) {
       AND (${until}::INTEGER IS NULL OR event.created_at <= ${until})
       GROUP BY event.id
       HAVING count(filter_tag.tag) = (SELECT count(*) FROM filter_tag)
+        AND NOT bool_or(tag.tag IS NOT NULL AND tag.tag = 'expiration'
+          AND tag.values[1]::INTEGER > extract(epoch from now()))
       ORDER BY event.created_at DESC
       LIMIT ${limit}`.values().cursor(100)
 

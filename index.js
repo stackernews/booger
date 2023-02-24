@@ -3,7 +3,7 @@ import {
   closeSocket, closeSub, openSub as _openSub,
   nextSocketId, sqliteInit, forEachSub
 } from './sqlite.js'
-import { eventSchema, filterSchema, validateSig } from './validate.js'
+import { eventSchema, filterSchema, validateId, validateSig } from './validate.js'
 import { forEachEvent, listen, pgInit, storeNotify } from './pg.js'
 import cluster from 'cluster'
 import http from 'http'
@@ -26,6 +26,7 @@ if (process.env.WORKERS > 1 && cluster.isMaster) {
 async function store (ws, event) {
   try {
     await eventSchema.validateAsync(event)
+    await validateId(event)
     await validateSig(event)
     await storeNotify(event)
     ws.send(JSON.stringify(['OK', event.id, true, '']))
