@@ -52,6 +52,13 @@ export const filterSchema = Joi.object({
   limit: Joi.number().min(0).multiple(1).max(5000)
 }).pattern(/^#[a-z]$/, Joi.array().items(Joi.string().max(1024)).max(256))
 
+export const delegateSchema = Joi.array().ordered(
+  pubkeySchema.required(),
+  Joi.string()
+    .pattern(/^((^(?!&)|(?!^)&)(kind=[0-9]+|created_at[<>][0-9]+))+$/i)
+    .required(),
+  signatureSchema.required())
+
 export async function computeId ({
   pubkey, created_at: createdAt, kind, tags, content
 }) {
@@ -70,5 +77,29 @@ export async function validateId (event) {
 export async function validateSig ({ sig, id, pubkey }) {
   if (!await secp256k1.schnorr.verify(sig, id, pubkey)) {
     throw new Error('invalid: signature does not match pubkey')
+  }
+}
+
+export function validateDelegation (kind, createdAt, conds) {
+  const { kinds, to, from } =
+    conds.split('&').reduce((a, c) => {
+      if (c.startsWith('kind=')) {
+        a.kinds.push(parseInt(c.slice(5)))
+      } else if (c.startsWith('created_at>')) {
+        a.from = parseInt(c.slice(11))
+      } else if (c.startsWith('created_at<')) {
+        a.to = parseInt(c.slice(11))
+      }
+      return a
+    }, { kinds: [] })
+
+  if (kinds && !kinds.includes(kind)) {
+    throw new Error('invalid: not delegated for kind')
+  }
+  if (to && createdAt > to) {
+    throw new Error('invalid: not delegated that far into future')
+  }
+  if (from && createdAt < from) {
+    throw new Error('invalid: not delegated that far into past')
   }
 }

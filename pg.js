@@ -2,6 +2,7 @@ import shift from 'postgres-shift'
 import postgres from 'postgres'
 import path from 'path'
 import * as dotenv from 'dotenv'
+import { delegateSchema, validateDelegation, validateSig } from './validate.js'
 dotenv.config()
 
 let pg
@@ -26,6 +27,21 @@ export async function storeNotify (event) {
     return await pg.notify('event', JSON.stringify(event))
   }
 
+  // nip 26
+  let delegator
+  const delegation = tags.find(([t]) => t === 'delegation')
+  if (delegation) {
+    const [, ...values] = delegation
+    await delegateSchema.validateAsync(values)
+    await validateSig({
+      sig: values[2],
+      id: ['nostr', 'delegation', pubkey, values[1]].join(':'),
+      pubkey: values[0]
+    })
+    validateDelegation(kind, createdAt, values[1])
+    delegator = values[0]
+  }
+
   await pg.begin(pg => {
     const line = []
 
@@ -36,8 +52,10 @@ export async function storeNotify (event) {
     }
 
     // nip 1 event
-    line.push(pg`INSERT INTO event (id, pubkey, created_at, kind, raw) VALUES
-      (${id}, ${pubkey}, ${createdAt}, ${kind}, ${JSON.stringify(event)})`)
+    line.push(pg`
+      INSERT INTO event (id, pubkey, delegator, created_at, kind, raw)
+      VALUES (${id}, ${pubkey}, ${delegator}, ${createdAt}, ${kind},
+        ${JSON.stringify(event)})`)
 
     let firstD = true
     for (const [tag, ...values] of tags) {
@@ -94,7 +112,9 @@ export async function forEachEvent (filters, cb) {
       LEFT JOIN filter_tag
         ON tag.tag = filter_tag.tag AND tag.values && filter_tag.values
       WHERE (${ids}::TEXT[] IS NULL OR event.id ^@ ANY (${ids}::TEXT[]))
-      AND (${authors}::TEXT[] IS NULL OR event.pubkey ^@ ANY (${authors}::TEXT[]))
+      AND (${authors}::TEXT[] IS NULL
+        OR event.pubkey ^@ ANY (${authors}::TEXT[])
+        OR event.delegator ^@ ANY (${authors}::TEXT[]))
       AND (${kinds}::INTEGER[] IS NULL OR event.kind = ANY (${kinds}::INTEGER[]))
       AND (${since}::INTEGER IS NULL OR event.created_at >= ${since})
       AND (${until}::INTEGER IS NULL OR event.created_at <= ${until})

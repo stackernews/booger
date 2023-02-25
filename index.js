@@ -3,7 +3,9 @@ import {
   closeSocket, closeSub, openSub as _openSub,
   nextSocketId, sqliteInit, forEachSub
 } from './sqlite.js'
-import { eventSchema, filterSchema, validateId, validateSig } from './validate.js'
+import {
+  eventSchema, filterSchema, validateId, validateSig
+} from './validate.js'
 import { forEachEvent, listen, pgInit, storeNotify } from './pg.js'
 import cluster from 'cluster'
 import http from 'http'

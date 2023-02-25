@@ -3,6 +3,7 @@ CREATE EXTENSION btree_gin;
 CREATE TABLE event (
     id TEXT PRIMARY KEY NOT NULL CHECK (id ~* '^[a-f0-9]{64}$'),
     pubkey TEXT NOT NULL CHECK (pubkey ~* '^[a-f0-9]{64}$'),
+    delegator TEXT CHECK (delegator IS NULL OR delegator ~* '^[a-f0-9]{64}$'),
     created_at INTEGER NOT NULL CHECK (created_at >= 0),
     kind INTEGER NOT NULL CHECK (kind >= 0),
     raw TEXT NOT NULL
