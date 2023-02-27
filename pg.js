@@ -2,7 +2,8 @@ import shift from 'postgres-shift'
 import postgres from 'postgres'
 import path from 'path'
 import * as dotenv from 'dotenv'
-import { delegateSchema, validateDelegation, validateSig } from './validate.js'
+import { delegateSchema, validateDelegateConds, validateSig } from './validate.js'
+import { createHash } from 'crypto'
 dotenv.config()
 
 let pg
@@ -27,20 +28,23 @@ export async function storeNotify (event) {
     return await pg.notify('event', JSON.stringify(event))
   }
 
-  // nip 26
-  let delegator
-  const delegation = tags.find(([t]) => t === 'delegation')
-  if (delegation) {
-    const [, ...values] = delegation
-    await delegateSchema.validateAsync(values)
-    await validateSig({
-      sig: values[2],
-      id: ['nostr', 'delegation', pubkey, values[1]].join(':'),
-      pubkey: values[0]
-    })
-    validateDelegation(kind, createdAt, values[1])
-    delegator = values[0]
-  }
+  // nip 26 delegation
+  const delegator = await (async () => {
+    const delegation = tags.find(([t]) => t === 'delegation')
+    if (delegation) {
+      const [, ...values] = delegation
+      await delegateSchema.validateAsync(values)
+      await validateSig(
+        values[2],
+        createHash('sha256').update(
+          ['nostr', 'delegation', pubkey, values[1]].join(':')
+        ).digest().toString('hex'),
+        values[0]
+      )
+      validateDelegateConds(kind, createdAt, values[1])
+      return values[0]
+    }
+  })()
 
   await pg.begin(pg => {
     const line = []
@@ -70,9 +74,9 @@ export async function storeNotify (event) {
       }
 
       // nip 40 expiration
-      if (tag === 'expiration' &&
-        Number(values[0]) > Math.floor(Date.now() / 1000)) {
-        throw new Error('invalid: expired')
+      if (tag === 'expiration') {
+        line.push(pg`UPDATE event SET expires_at = ${Number(values[0])}
+          WHERE id = ${id}`)
       }
 
       // nip 33 parameterized replacement
@@ -118,10 +122,10 @@ export async function forEachEvent (filters, cb) {
       AND (${kinds}::INTEGER[] IS NULL OR event.kind = ANY (${kinds}::INTEGER[]))
       AND (${since}::INTEGER IS NULL OR event.created_at >= ${since})
       AND (${until}::INTEGER IS NULL OR event.created_at <= ${until})
+      AND (event.expires_at IS NULL
+        OR event.expires_at > extract(epoch from now()))
       GROUP BY event.id
       HAVING count(filter_tag.tag) = (SELECT count(*) FROM filter_tag)
-        AND NOT bool_or(tag.tag IS NOT NULL AND tag.tag = 'expiration'
-          AND tag.values[1]::INTEGER > extract(epoch from now()))
       ORDER BY event.created_at DESC
       LIMIT ${limit}`.values().cursor(100)
 

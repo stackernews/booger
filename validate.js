@@ -74,13 +74,13 @@ export async function validateId (event) {
   }
 }
 
-export async function validateSig ({ sig, id, pubkey }) {
-  if (!await secp256k1.schnorr.verify(sig, id, pubkey)) {
+export async function validateSig (sig, data, pubkey) {
+  if (!await secp256k1.schnorr.verify(sig, data, pubkey)) {
     throw new Error('invalid: signature does not match pubkey')
   }
 }
 
-export function validateDelegation (kind, createdAt, conds) {
+export function validateDelegateConds (kind, createdAt, conds) {
   const { kinds, to, from } =
     conds.split('&').reduce((a, c) => {
       if (c.startsWith('kind=')) {

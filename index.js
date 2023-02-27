@@ -29,7 +29,7 @@ async function store (ws, event) {
   try {
     await eventSchema.validateAsync(event)
     await validateId(event)
-    await validateSig(event)
+    await validateSig(event.sig, event.id, event.pubkey)
     await storeNotify(event)
     ws.send(JSON.stringify(['OK', event.id, true, '']))
   } catch (e) {

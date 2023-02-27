@@ -5,14 +5,18 @@ CREATE TABLE event (
     pubkey TEXT NOT NULL CHECK (pubkey ~* '^[a-f0-9]{64}$'),
     delegator TEXT CHECK (delegator IS NULL OR delegator ~* '^[a-f0-9]{64}$'),
     created_at INTEGER NOT NULL CHECK (created_at >= 0),
+    expires_at INTEGER
+      CHECK (expires_at IS NULL OR expires_at > extract(epoch from now())),
     kind INTEGER NOT NULL CHECK (kind >= 0),
     raw TEXT NOT NULL
 );
 
 CREATE INDEX event_id_spgist_idx ON event USING spgist (id);
 CREATE INDEX event_pubkey_spgist_idx ON event USING spgist (pubkey);
-CREATE INDEX event_kind_idx ON event (kind);
+CREATE INDEX event_delegator_spgist_idx ON event USING spgist (delegator);
 CREATE INDEX event_created_at_idx ON event (created_at DESC);
+CREATE INDEX event_expires_at_idx ON event (expires_at);
+CREATE INDEX event_kind_idx ON event (kind);
 
 CREATE OR REPLACE FUNCTION jsonb_array_to_text_array(_js jsonb)
   RETURNS text[]
