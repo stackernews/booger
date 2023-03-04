@@ -17,7 +17,7 @@ isn't ready for prod yet until it has defenses either
 # what booger doesn't do (yet)
 
 - defend itself: no rate limits, spam prevention, payments
-  - booger's preference is to provide these via some plugin mechanism (workers,
+  - i'd like to provide these via some plugin mechanism (workers,
     maybe?)
 - use postgres read replicas
 
@@ -43,8 +43,8 @@ isn't ready for prod yet until it has defenses either
 
 # how to run (locally)
 
-0. install postgres and run it (welcome to programming)
-1. insall deno (welcome to deno)
+0. [install postgres](https://www.postgresql.org/download/) and run it (welcome to programming)
+1. [insall deno](https://deno.land/) (welcome to deno)
 2. clone booger
 3. configure env variables in `.env.defaults`
 4. deno task dev
