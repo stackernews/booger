@@ -1,27 +1,26 @@
-import shift from 'postgres-shift'
 import postgres from 'postgres'
-import path from 'path'
-import * as dotenv from 'dotenv'
-import { delegateSchema, validateDelegateConds, validateSig } from './validate.js'
-import { createHash } from 'crypto'
-dotenv.config()
+import shift from 'postgres-shift'
+import { validateDelgation } from './validate.js'
 
 let pg
-export async function pgInit () {
-  pg = postgres(process.env.DB_URL, {
-    // debug: console.log,
-    transform: {
-      undefined: null
-    }
-  })
-  await shift({ sql: pg, path: path.resolve('./migrations') })
+export async function pgInit() {
+  pg = postgres(
+    Deno.env.get('DB_URL'),
+    {
+      // debug: console.log,
+      transform: {
+        undefined: null,
+      },
+    },
+  )
+  await shift({ sql: pg, path: './migrations' })
 }
 
-export async function listen (handleEvent) {
+export async function listen(handleEvent) {
   await pg.listen('event', handleEvent)
 }
 
-export async function storeNotify (event) {
+export async function storeNotify(event) {
   const { id, pubkey, created_at: createdAt, kind, tags } = event
   // nip 16 ephemeral
   if (kind >= 20000 && kind < 30000) {
@@ -32,21 +31,12 @@ export async function storeNotify (event) {
   const delegator = await (async () => {
     const delegation = tags.find(([t]) => t === 'delegation')
     if (delegation) {
-      const [, ...values] = delegation
-      await delegateSchema.validateAsync(values)
-      await validateSig(
-        values[2],
-        createHash('sha256').update(
-          ['nostr', 'delegation', pubkey, values[1]].join(':')
-        ).digest().toString('hex'),
-        values[0]
-      )
-      validateDelegateConds(kind, createdAt, values[1])
-      return values[0]
+      await validateDelgation(kind, createdAt, pubkey, delegation.slice(1))
+      return delegation[1]
     }
   })()
 
-  await pg.begin(pg => {
+  await pg.begin((pg) => {
     const line = []
 
     // nip 1, 3, and 16 replaceable kinds
@@ -92,7 +82,8 @@ export async function storeNotify (event) {
               FROM tag
               WHERE event.id = tag.event_id
               AND tag.tag = 'd'
-              AND COALESCE(tag.values[1], '') = COALESCE(${values[0]}, ''))`)
+              AND COALESCE(tag.values[1], '') = COALESCE(${values[0]}, ''))`,
+        )
       }
     }
 
@@ -100,10 +91,18 @@ export async function storeNotify (event) {
   })
 }
 
-export async function forEachEvent (filters, cb) {
-  for (const {
-    ids, authors, kinds, since, until, limit, ...tags
-  } of filters) {
+export async function forEachEvent(filters, cb) {
+  for (
+    const {
+      ids,
+      authors,
+      kinds,
+      since,
+      until,
+      limit,
+      ...tags
+    } of filters
+  ) {
     const cursor = pg`
       WITH filter_tag AS (
         SELECT ltrim(key, '#') AS tag,
@@ -130,7 +129,7 @@ export async function forEachEvent (filters, cb) {
       LIMIT ${limit}`.values().cursor(100)
 
     for await (const rows of cursor) {
-      rows.forEach(row => cb(row[0]))
+      rows.forEach((row) => cb(row[0]))
     }
   }
 }
