@@ -60,7 +60,7 @@ isn't ready for prod yet until it has defenses either
 
 # what booger wants
 
-Simplicity, extensibility, ease of use, performance, and security.
+simplicity, extensibility, ease of use, performance, security
 
 # thanks to
 
