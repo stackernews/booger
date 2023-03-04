@@ -2,7 +2,7 @@
 
 # booger
 
-A nostr relay.
+A nostr relay
 
 ### 🚨 breaking changes incoming
 
@@ -43,28 +43,18 @@ isn't ready for prod yet until it has defenses either
 
 # how to run (locally)
 
-0. [install postgres](https://www.postgresql.org/download/) and run it (welcome to programming)
-1. [insall deno](https://deno.land/) (welcome to deno)
-2. clone booger
-3. configure env variables in `.env.defaults`
-4. deno task dev
-
-# why another relay
-
-1. i wanted a relay implementation i could comprehend in 10 minutes
-2. i wanted a relay that i could extend with new NIPs fast
-3. i wanted a relay that could scale horizontally with minimal operational
-   requirements
-4. to learn
-5. code golf
+0. [install postgres](https://www.postgresql.org/download/) and run it (welcome to app programming)
+0. [insall deno](https://deno.land/) (welcome to deno)
+1. clone booger
+2. configure env in `.env.defaults`
+3. deno task dev
 
 # what booger wants
 
-simplicity, extensibility, ease of use, performance, security
+simplicity, ease of use, extensibility, scalability, performance, security
 
 # thanks to
 
-1. [camari's nostream](https://github.com/Cameri/nostream) - i based a lot of
-   the validation and integration tests off of their work
+1. [camari's nostream](https://github.com/Cameri/nostream) - heavily inspired booger's validation and integration tests
 2. everyone working on [nostr](https://github.com/nostr-protocol/nips)
 3. my cat dona, meow
