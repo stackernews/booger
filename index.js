@@ -23,7 +23,17 @@ async function store(ws, event) {
 async function openSub(ws, subId, ...filters) {
   await zFilters.parseAsync(filters)
   _openSub(ws.id, subId, filters)
-  await forEachEvent(filters, (e) => ws.send(`["EVENT", "${subId}", ${e}]`))
+  await forEachEvent(
+    filters,
+    (e) => {
+      try {
+        ws.send(`["EVENT", "${subId}", ${e}]`)
+      } catch (e) {
+        console.error('open sub', e)
+        throw e
+      }
+    },
+  )
   ws.send(JSON.stringify(['EOSE', subId]))
 }
 
@@ -37,12 +47,17 @@ await listen((e) => {
     try {
       ws.send(`["EVENT", "${subId}", ${e}]`)
     } catch (e) {
-      console.error(e)
+      console.error('listen', e)
+      throw e
     }
   })
 })
 
-Deno.serve(async (req) => {
+Deno.serve({
+  port: Deno.env.get('PORT'),
+  hostname: '127.0.0.1',
+  reusePort: true,
+}, async (req) => {
   if (req.headers.get('upgrade')?.toLowerCase() !== 'websocket') {
     const headers = {
       'Access-Control-Allow-Origin': '*',
@@ -65,6 +80,7 @@ Deno.serve(async (req) => {
   ws.onopen = () => {
     ws.id = nextSocketId()
     sockets.set(ws.id, ws)
+    console.info('client connected', ws.id)
   }
   ws.onmessage = async ({ data }) => {
     try {
@@ -80,14 +96,18 @@ Deno.serve(async (req) => {
           ws.send(JSON.stringify(['NOTICE', `invalid request type ${m[0]}`]))
       }
     } catch (e) {
-      console.error(e)
+      console.error('message', e)
     }
   }
-  ws.onerror = console.error
+  ws.onerror = (e) => {
+    ws.close()
+    console.error(e)
+  }
   ws.onclose = () => {
+    ws.close()
     closeSocket(ws.id)
     sockets.delete(ws.id)
     console.info('client disconnected', ws.id)
   }
   return res
-}, { port: Deno.env.get('PORT'), reusePort: true })
+})

@@ -6,8 +6,8 @@ import { assertObjectMatch } from 'std/testing/asserts.ts'
 let eventCount = 0
 
 export function connect() {
-  const ws = new WebSocket('ws://127.0.0.1:' + Deno.env.get('PORT'))
   return new Promise((resolve, reject) => {
+    const ws = new WebSocket('ws://127.0.0.1:' + Deno.env.get('PORT'))
     ws.addEventListener('open', () => {
       resolve(ws)
     })
@@ -19,7 +19,16 @@ export function connect() {
 }
 
 export function disconnect(person) {
-  person.ws.close()
+  return new Promise((resolve, reject) => {
+    person.ws.close()
+    person.ws.addEventListener('close', () => {
+      resolve()
+    })
+    person.ws.addEventListener('error', (err) => {
+      console.error(err)
+      reject(err)
+    })
+  })
 }
 
 export async function createPersona() {
