@@ -13,12 +13,14 @@ isn't ready for prod yet until it has defenses either
 
 - supports many NIPs: 1, 2, 4, 9, 11, 12, 15, 16, 20, 26, 28, 33, 40
 - suitable for horizontally scaling websocket layer with a load balancer
+- pluggable: connections, disconnections, subs, sub closes, events, eoses,
+  notices, and errors
+  - [read more about booger plugs](/plugs/README.md)
 
 # what booger doesn't do (yet)
 
 - defend itself: no rate limits, spam prevention, payments
-  - i'd like to provide these via some plugin mechanism (workers,
-    maybe?)
+  - these will soon (tm) be provided as [booger plugs](/plugs/README.md)
 - use postgres read replicas
 
 # booger in words
@@ -43,11 +45,15 @@ isn't ready for prod yet until it has defenses either
 
 # how to run (locally)
 
-0. [install postgres](https://www.postgresql.org/download/) and run it (welcome to app programming)
-0. [insall deno](https://deno.land/) (welcome to deno)
-1. clone booger
-2. configure env in `.env.defaults`
-3. deno task dev
+0. [install postgres](https://www.postgresql.org/download/) and run it (welcome
+   to app programming)
+1. [insall deno 1.32.1](https://deno.land/) (welcome to deno)
+   - 🚨
+     [recent deno release's websocket implementation crashes booger reliably](https://github.com/denoland/deno/issues/17283),
+     thus I recommmend using `1.32.1` for the time being
+2. clone booger
+3. configure env in `.env.defaults`
+4. deno task dev
 
 # what booger wants
 
@@ -55,6 +61,11 @@ simplicity, ease of use, extensibility, scalability, performance, security
 
 # thanks to
 
-1. [camari's nostream](https://github.com/Cameri/nostream) - heavily inspired booger's validation and integration tests
-2. everyone working on [nostr](https://github.com/nostr-protocol/nips)
-3. my cat dona, meow
+1. [camari's nostream](https://github.com/Cameri/nostream) - heavily inspired
+   booger's validation and integration tests
+2. [hoytech's strfry](https://github.com/hoytech/strfry) - heavily inspired
+   [booger plugs](/plugs/README.md) with their write policy
+3. [alex gleason's strfry write policies](https://gitlab.com/soapbox-pub/strfry-policies/-/tree/develop/src/policies) -
+   awesome set of strfry policy examples
+4. everyone working on [nostr](https://github.com/nostr-protocol/nips)
+5. my cat dona, meow

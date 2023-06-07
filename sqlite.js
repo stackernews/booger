@@ -166,3 +166,12 @@ export function forEachSub(
     )
   ) cb(socket_id, sub_id)
 }
+
+export function forEachSubId(socketId, cb) {
+  for (
+    const [sub_id] of db.query(
+      'SELECT sub_id FROM filters WHERE socket_id = ?',
+      [socketId],
+    )
+  ) cb(sub_id)
+}

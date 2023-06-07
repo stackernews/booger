@@ -96,7 +96,7 @@ export async function sha256HexStr(str) {
   )
 }
 
-export async function validateDelgation(kind, createdAt, pubkey, delegation) {
+export async function validateDelegation(kind, createdAt, pubkey, delegation) {
   const { kinds, to, from } = await zDelegate.parseAsync(delegation)
 
   try {

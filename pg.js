@@ -1,6 +1,5 @@
 import postgres from 'postgres'
 import shift from 'postgres-shift'
-import { validateDelgation } from './validate.js'
 
 let pg
 export async function pgInit() {
@@ -28,13 +27,7 @@ export async function storeNotify(event) {
   }
 
   // nip 26 delegation
-  const delegator = await (async () => {
-    const delegation = tags.find(([t]) => t === 'delegation')
-    if (delegation) {
-      await validateDelgation(kind, createdAt, pubkey, delegation.slice(1))
-      return delegation[1]
-    }
-  })()
+  const delegator = tags.find(([t]) => t === 'delegation')?.at(1)
 
   await pg.begin((pg) => {
     const line = []
