@@ -54,7 +54,7 @@ strings:
 When an action occurs, workers who have registered for that action will get a
 message from booger in the form:
 
-```json
+```jsonc
 {
    client: {
       headers: Object // http headers as a json object
@@ -74,7 +74,7 @@ or not booger should reject the action:
 
 Responses from these actions must take the form:
 
-```json
+```jsonc
 {
    accept: Boolean, // true to accept, false if booger should prevent
    reason: String // reason for rejection if accept is false, undefined otherwise
@@ -101,7 +101,7 @@ messages. This data varies depending on the action.
 2. `'disconnect'`
    - `data` is `undefined`
 3. `'sub'`
-   - ```json
+   - ```jsonc
      data: {
         subId: String, // sub id as received from the client
         filters: [Filter] // array of filters as received from the client
@@ -110,26 +110,26 @@ messages. This data varies depending on the action.
 4. `'unsub'`
    - `data` is `undefined`
 5. `'eose'`
-   - ```json
+   - ```jsonc
      data: {
         subId: String, // sub id as received from the client
         count: Integer // the number of events sent to the client before eose
      }
      ```
 6. `'event'`
-   - ```json
+   - ```jsonc
      data: {
         event: Event, // event as received from the client
      }
      ```
 7. `'notice'`
-   - ```json
+   - ```jsonc
      data: {
         notice: String, // the notice message sent to the client
      }
      ```
 8. `'error'`
-   - ```json
+   - ```jsonc
      data: {
         error: Error, // the relevant javascript Error object
      }
