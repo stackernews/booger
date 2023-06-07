@@ -60,7 +60,7 @@ message from booger in the form:
       headers: Object // http headers as a json object
       // ... we just pass http headers currently but we might add other fields
    },
-   action: String // e.g. 'connect'
+   action: String, // e.g. 'connect'
    data: Object // depends on the action and are documented further down
 }
 ```
@@ -77,7 +77,7 @@ Responses from these actions must take the form:
 ```json
 {
    accept: Boolean, // true to accept, false if booger should prevent
-   reason: String, // reason for rejection if accept is false, undefined otherwise
+   reason: String // reason for rejection if accept is false, undefined otherwise
    // TODO: we'll probably add a replyRaw to send replies directly to clients
 }
 ```
