@@ -1,7 +1,7 @@
 import { walk } from 'std/fs/walk.ts'
 import { globToRegExp } from 'std/path/glob.ts'
 import { readLines } from 'std/io/read_lines.ts'
-import { dirname, join } from 'https://deno.land/std@0.190.0/path/mod.ts'
+import { dirname } from 'https://deno.land/std@0.190.0/path/mod.ts'
 
 const plugs = {
   connect: [],
