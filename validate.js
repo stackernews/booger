@@ -1,8 +1,11 @@
 import { z } from 'zod'
 import * as secp from 'secp'
 import { crypto, toHashString } from 'std/crypto/mod.ts'
+import LIMITS from './validate.limits.js'
 
-export const zPrefix = z.string().regex(/^[a-f0-9]{4,64}$/)
+export const zPrefix = z.string().regex(
+  new RegExp(`^[a-f0-9]{${LIMITS.minPrefixLength},64}$`),
+)
 
 export const zId = z.string().regex(/^[a-f0-9]{64}$/)
 
@@ -12,19 +15,22 @@ export const zKind = z.number().int().gte(0)
 
 export const zSig = z.string().regex(/^[a-f0-9]{128}$/)
 
-export const zSub = z.string().min(1).max(255)
+export const zSub = z.string().min(LIMITS.minSubscriptionIdLength)
+  .max(LIMITS.maxSubscriptionIdLength)
 
-export const zTime = z.number().int().min(0).max(2147483647)
+export const zTime = z.number().int().min(LIMITS.minCreatedAt)
+  .max(LIMITS.maxCreatedAt)
 
-export const zTag = z.tuple([z.string().max(255)]).rest(z.string().max(1024)) // max(10)?
+export const zTag = z.tuple([z.string().max(LIMITS.maxTagIdLength)])
+  .rest(z.string().max(LIMITS.maxTagDataLength))
 
 export const zEvent = z.object({
   id: zId,
   pubkey: zPubkey,
   created_at: zTime,
   kind: zKind,
-  tags: z.array(zTag).max(2500),
-  content: z.string().max(100 * 1024), // 100 kB
+  tags: z.array(zTag).max(LIMITS.maxTagCount),
+  content: z.string().max(LIMITS.maxContentSize),
   sig: zSig,
 }).refine(async (e) => {
   try {
@@ -41,14 +47,15 @@ export const zEvent = z.object({
 }, { message: 'invalid: sig does not match pubkey' })
 
 export const zFilter = z.object({
-  ids: z.array(zPrefix).max(1000),
-  authors: z.array(zPrefix).max(1000),
-  kinds: z.array(zKind).max(20),
+  ids: z.array(zPrefix).max(LIMITS.maxIds),
+  authors: z.array(zPrefix).max(LIMITS.maxAuthors),
+  kinds: z.array(zKind).max(LIMITS.maxKinds),
   since: zTime,
   until: zTime,
-  limit: z.number().int().min(0).max(5000),
-}).catchall(z.array(z.string().max(1024)).max(256))
-  .partial()
+  limit: z.number().int().min(LIMITS.minLimit).max(LIMITS.maxLimit),
+}).catchall(
+  z.array(z.string().max(LIMITS.maxTagDataLength)).max(LIMITS.maxTagCount),
+).partial()
 
 export const zFilters = z.array(zFilter)
 
@@ -120,4 +127,29 @@ export async function validateDelegation(kind, createdAt, pubkey, delegation) {
   if (from && createdAt < from) {
     throw new Error('invalid: not delegated that far into past')
   }
+}
+
+// invalid: path.to.thing - message, path.to.other - message
+export function zErrorToString(e) {
+  let message = 'invalid: '
+  for (const [i, issue] of e.issues.entries()) {
+    for (const [i, path] of issue.path.entries()) {
+      if (typeof path === 'number') {
+        message += `[${path}]`
+      } else {
+        if (i !== 0) {
+          message += '.'
+        }
+        message += `${path}`
+      }
+    }
+
+    message += ` - ${issue.message}`
+
+    if (i !== e.issues.length - 1) {
+      message += ', '
+    }
+  }
+
+  return message
 }
