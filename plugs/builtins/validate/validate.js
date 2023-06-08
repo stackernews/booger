@@ -1,10 +1,10 @@
 import { z } from 'zod'
 import * as secp from 'secp'
 import { crypto, toHashString } from 'std/crypto/mod.ts'
-import LIMITS from './validate.limits.js'
+import CONFIG from './validate.config.js'
 
 export const zPrefix = z.string().regex(
-  new RegExp(`^[a-f0-9]{${LIMITS.minPrefixLength},64}$`),
+  new RegExp(`^[a-f0-9]{${CONFIG.minPrefixLength},64}$`),
 )
 
 export const zId = z.string().regex(/^[a-f0-9]{64}$/)
@@ -15,22 +15,22 @@ export const zKind = z.number().int().gte(0)
 
 export const zSig = z.string().regex(/^[a-f0-9]{128}$/)
 
-export const zSub = z.string().min(LIMITS.minSubscriptionIdLength)
-  .max(LIMITS.maxSubscriptionIdLength)
+export const zSub = z.string().min(CONFIG.minSubscriptionIdLength)
+  .max(CONFIG.maxSubscriptionIdLength)
 
-export const zTime = z.number().int().min(LIMITS.minCreatedAt)
-  .max(LIMITS.maxCreatedAt)
+export const zTime = z.number().int().min(CONFIG.minCreatedAt)
+  .max(CONFIG.maxCreatedAt)
 
-export const zTag = z.tuple([z.string().max(LIMITS.maxTagIdLength)])
-  .rest(z.string().max(LIMITS.maxTagDataLength))
+export const zTag = z.tuple([z.string().max(CONFIG.maxTagIdLength)])
+  .rest(z.string().max(CONFIG.maxTagDataLength))
 
 export const zEvent = z.object({
   id: zId,
   pubkey: zPubkey,
   created_at: zTime,
   kind: zKind,
-  tags: z.array(zTag).max(LIMITS.maxTagCount),
-  content: z.string().max(LIMITS.maxContentSize),
+  tags: z.array(zTag).max(CONFIG.maxTagCount),
+  content: z.string().max(CONFIG.maxContentSize),
   sig: zSig,
 }).refine(async (e) => {
   try {
@@ -47,14 +47,14 @@ export const zEvent = z.object({
 }, { message: 'invalid: sig does not match pubkey' })
 
 export const zFilter = z.object({
-  ids: z.array(zPrefix).max(LIMITS.maxIds),
-  authors: z.array(zPrefix).max(LIMITS.maxAuthors),
-  kinds: z.array(zKind).max(LIMITS.maxKinds),
+  ids: z.array(zPrefix).max(CONFIG.maxIds),
+  authors: z.array(zPrefix).max(CONFIG.maxAuthors),
+  kinds: z.array(zKind).max(CONFIG.maxKinds),
   since: zTime,
   until: zTime,
-  limit: z.number().int().min(LIMITS.minLimit).max(LIMITS.maxLimit),
+  limit: z.number().int().min(CONFIG.minLimit).max(CONFIG.maxLimit),
 }).catchall(
-  z.array(z.string().max(LIMITS.maxTagDataLength)).max(LIMITS.maxTagCount),
+  z.array(z.string().max(CONFIG.maxTagDataLength)).max(CONFIG.maxTagCount),
 ).partial()
 
 export const zFilters = z.array(zFilter)

@@ -55,6 +55,14 @@ isn't ready for prod yet until it has defenses either
 3. configure env in `.env.defaults`
 4. deno task dev
 
+# what's currently configurable
+
+- You can alter NIP-11 responses by changing `NIP-11.json`
+- You can configure the builtin validation by changing values in
+  `plugs/builtins/validate/validate.config.js`
+- You can set booger port and postgres url, `PORT` and `DB_URL` respectively,
+  through `env` vars
+
 # what booger wants
 
 simplicity, ease of use, extensibility, scalability, performance, security
@@ -69,3 +77,11 @@ simplicity, ease of use, extensibility, scalability, performance, security
    awesome set of strfry policy examples
 4. everyone working on [nostr](https://github.com/nostr-protocol/nips)
 5. my cat dona, meow
+
+# license
+
+[MIT](https://choosealicense.com/licenses/mit/)
+
+# contributing
+
+do it. i dare you.

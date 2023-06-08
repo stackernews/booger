@@ -1,4 +1,7 @@
 import { walk } from 'std/fs/walk.ts'
+import { globToRegExp } from 'std/path/glob.ts'
+import { readLines } from 'std/io/read_lines.ts'
+import { dirname, join } from 'https://deno.land/std@0.190.0/path/mod.ts'
 
 const plugs = {
   connect: [],
@@ -11,31 +14,63 @@ const plugs = {
   error: [],
 }
 
+async function getIgnorePatterns() {
+  const patterns = []
+  for await (const p of walk('./plugs/', { match: ['\.plugsignore'] })) {
+    const fileReader = await Deno.open(p.path)
+    for await (const line of readLines(fileReader)) {
+      if (line.startsWith('#')) continue
+      let dir = dirname(p.path)
+      if (!line.startsWith('/')) {
+        dir += '/**/'
+      }
+      patterns.push(globToRegExp(dir + line))
+    }
+  }
+  return patterns
+}
+
 export async function plugsInit() {
-  for await (const p of walk('./plugs/', { exts: ['.js', '.ts'] })) {
+  const ignorePatterns = await getIgnorePatterns()
+
+  for await (
+    const p of walk('./plugs/', { exts: ['.js', '.ts'], skip: ignorePatterns })
+  ) {
     // start the worker and ask it which events it wants to listen to
-    const worker = new Worker(new URL(p.path, import.meta.url).href, {
-      type: 'module',
-    })
-    await new Promise((resolve) => {
-      worker.onmessage = ({ data }) => {
-        for (const action of data) {
-          if (!Object.keys(plugs).includes(action.toLowerCase())) {
-            console.error(
-              `plug ${p.path} tried to register for unknown action ${action}`,
-            )
-            Deno.exit(1)
+    try {
+      const worker = new Worker(new URL(p.path, import.meta.url).href, {
+        type: 'module',
+      })
+      await new Promise((resolve, reject) => {
+        setTimeout(() =>
+          reject(
+            new Error(
+              `${p.path} did not respond to 'getactions' within 5s. Is it a web worker?`,
+            ),
+          ), 5000)
+
+        worker.onmessage = ({ data }) => {
+          console.log(
+            `plug ${p.path} registered for actions: ${data.join(', ')}`,
+          )
+          for (const action of data) {
+            if (!Object.keys(plugs).includes(action.toLowerCase())) {
+              console.error(
+                `plug ${p.path} tried to register for unknown action ${action}`,
+              )
+              Deno.exit(1)
+            }
+            plugs[action.toLowerCase()].push(worker)
           }
-          plugs[action.toLowerCase()].push(worker)
+          resolve()
         }
-        resolve()
-      }
-      worker.onerror = (e) => {
-        console.error(e)
-        Deno.exit(1)
-      }
-      worker.postMessage('getactions')
-    })
+        worker.onerror = reject
+        worker.postMessage('getactions')
+      })
+    } catch (e) {
+      console.error(e)
+      Deno.exit(1)
+    }
   }
 }
 

@@ -1,0 +1,5 @@
+# ignore files/directories that reside in /plugs that you don't want to run or
+# aren't web workers
+# intended to support a .gitignore-like syntax, but might be buggy
+*.config.js
+validate.js

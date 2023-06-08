@@ -218,6 +218,12 @@ replace booger's validation with your own.
 
 We'll provide more builtins for things like rate limiting soon (tm).
 
+# ignoring files in `/plugs`
+
+If you want to put files in `/plugs` that aren't workers or that you want
+ignored, you can specify them in a `.plugsignore` file. The intent is to support
+a `.gitignore` like syntax but it might be buggy.
+
 # thanks to
 
 1. [hoytech's strfry](https://github.com/hoytech/strfry) - heavily inspired

@@ -1,4 +1,4 @@
-import { validateDelegation, zErrorToString, zEvent } from '/validate.js'
+import { validateDelegation, zErrorToString, zEvent } from './validate.js'
 import { z } from 'zod'
 
 self.onmessage = async ({ data }) => {

@@ -1,4 +1,4 @@
-import { zErrorToString, zFilters, zSub } from '/validate.js'
+import { zErrorToString, zFilters, zSub } from './validate.js'
 import { z } from 'zod'
 
 self.onmessage = async ({ data }) => {
