@@ -131,7 +131,7 @@ messages. This data varies depending on the action.
 8. `'error'`
    - ```jsonc
      data: {
-        error: Error, // the relevant javascript Error object
+        error: Error, // the Error.message
      }
      ```
 
@@ -211,12 +211,12 @@ self.onmessage = ({ data }) => {
 
 # builtins
 
-As of this writing [event](/plugs/builtins/validate/event.js) and
-[subscription](/plugs/builtins/validate/sub.js) filter validation are
-implemented as booger plugs. Thus it's relatively trivial to enhance or outright
-replace booger's validation with your own.
-
-We'll provide more builtins for things like rate limiting soon (tm).
+1. validation
+   - [events](/plugs/builtins/validate/event.js)
+   - [subscriptions](/plugs/builtins/validate/sub.js)
+2. [stats](/plugs/builtins/stats/stats.js) stores connection and subscription
+   statistics
+3. rate-limiting soon (tm)
 
 # ignoring files in `/plugs`
 

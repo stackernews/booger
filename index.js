@@ -64,7 +64,7 @@ await listen((e) => {
 
 function handleError(ws, error) {
   console.error(error)
-  plugsAction('error', { headers: ws.headers }, { error })
+  plugsAction('error', { headers: ws.headers }, { error: error.message })
     .catch(console.error)
 }
 
@@ -105,7 +105,7 @@ Deno.serve({
   const { socket: ws, response: res } = Deno.upgradeWebSocket(req)
   ws.onopen = async () => {
     ws.headers = {}
-    req.headers.forEach((v, k) => ws.headers[k] = v)
+    req.headers.forEach((v, k) => ws.headers[k.toLowerCase()] = v)
     ws.id = nextSocketId()
     sockets.set(ws.id, ws)
     try {
