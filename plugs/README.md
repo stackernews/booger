@@ -56,12 +56,12 @@ message from booger in the form:
 
 ```jsonc
 {
-   client: {
-      headers: Object // http headers as a json object
-      // ... we just pass http headers currently but we might add other fields
+   conn: {
+      id: UUID // unique id to this connection
+      headers: JSON // http headers as a json object
    },
    action: String, // e.g. 'connect'
-   data: Object // depends on the action and are documented further down
+   data: JSON // depends on the action and are documented further down
 }
 ```
 
@@ -131,7 +131,7 @@ messages. This data varies depending on the action.
 8. `'error'`
    - ```jsonc
      data: {
-        error: Error, // the Error.message
+        error: JSON, // the Error object as JSON
      }
      ```
 

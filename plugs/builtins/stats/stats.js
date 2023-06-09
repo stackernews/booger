@@ -34,23 +34,22 @@ self.onmessage = async ({ data }) => {
     return
   }
 
+  const { action, conn, data: dat } = data
   try {
-    const ip = data.client.headers['x-forwarded-for']?.split(',')[0]
-
-    switch (data.action) {
+    switch (action) {
       case 'connect':
-        await pg`INSERT INTO conns (ip, headers) VALUES
-          (${ip}, ${data.client.headers})`
+        await pg`INSERT INTO conns (id, headers) VALUES
+          (${conn.id}, ${conn.headers})`
         break
       case 'disconnect':
-        await pg`INSERT INTO disconns (ip) VALUES (${ip})`
+        await pg`UPDATE conns SET closed_at = NOW() AT TIME ZONE 'UTC' WHERE id = ${conn.id}`
         break
       case 'sub':
         await pg.begin((pg) => {
           const lines = []
 
-          lines.push(pg`INSERT INTO subs (ip, nostr_sub_id)
-              VALUES (${ip}, ${data.data.subId})`)
+          lines.push(pg`INSERT INTO subs (conn_id, nostr_sub_id)
+              VALUES (${conn.id}, ${dat.subId})`)
 
           for (
             const {
@@ -61,7 +60,7 @@ self.onmessage = async ({ data }) => {
               until,
               limit,
               ...tags
-            } of data.data.filters
+            } of dat.filters
           ) {
             lines.push(pg`INSERT INTO filters (sub_id, since, until, lmt)
               VALUES (currval('subs_id_seq'), ${since}, ${until}, ${limit})`)
@@ -91,27 +90,27 @@ self.onmessage = async ({ data }) => {
         })
         break
       case 'unsub':
-        await pg`INSERT INTO unsubs (ip) VALUES (${ip})`
+        await pg`UPDATE subs SET closed_at = NOW() AT TIME ZONE 'UTC'
+          WHERE conn_id = ${conn.id} AND nostr_sub_id = ${dat.subId}`
         break
       case 'eose':
-        await pg`INSERT INTO eoses (ip, nostr_sub_id, eose_count, eose_at)
-          VALUES (${ip}, ${data.data.subId}, ${data.data.count},
-            NOW() AT TIME ZONE 'UTC')`
+        await pg`UPDATE subs SET eose_at = NOW() AT TIME ZONE 'UTC', eose_count = ${dat.count}
+          WHERE conn_id = ${conn.id} AND nostr_sub_id = ${dat.subId}`
         break
       case 'notice':
-        await pg`INSERT INTO notices (ip, msg)
-          VALUES (${ip}, ${data.data.notice})`
+        await pg`INSERT INTO notices (conn_id, msg)
+          VALUES (${conn.id}, ${dat.notice})`
         break
       case 'error':
-        await pg`INSERT INTO errors (ip, msg)
-          VALUES (${ip}, ${data.data.error.message})`
+        await pg`INSERT INTO errors (conn_id, error)
+          VALUES (${conn.id}, ${dat.error})`
         break
     }
   } catch (e) {
     console.error(e)
   }
 
-  if (['connect', 'sub'].includes(data.action)) {
+  if (['connect', 'sub'].includes(action)) {
     self.postMessage({ accept: true })
   }
 

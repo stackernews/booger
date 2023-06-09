@@ -74,7 +74,7 @@ export async function plugsInit() {
   }
 }
 
-export async function plugsAction(action, client, data) {
+export async function plugsAction(action, conn, data) {
   return await Promise.all(plugs[action].map((worker) => {
     return new Promise((resolve, reject) => {
       worker.onmessage = ({ data }) => {
@@ -84,7 +84,7 @@ export async function plugsAction(action, client, data) {
         resolve()
       }
       worker.onerror = reject
-      worker.postMessage({ action, client, data })
+      worker.postMessage({ action, conn, data })
       // if the action isn't something that can be rejected, resolve immediately
       if (['eose', 'disconnect', 'error', 'notice', 'unsub'].includes(action)) {
         resolve()

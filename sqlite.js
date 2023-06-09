@@ -6,12 +6,12 @@ export function sqliteInit() {
   db.execute('PRAGMA foreign_keys = ON')
   db.execute(`
     CREATE TABLE socket (
-      id INTEGER PRIMARY KEY
+      id TEXT PRIMARY KEY
     );
     CREATE TABLE filters (
       id INTEGER PRIMARY KEY,
       sub_id TEXT NOT NULL,
-      socket_id INTEGER NOT NULL,
+      socket_id TEXT NOT NULL,
       since INTEGER,
       until INTEGER,
 
@@ -66,11 +66,8 @@ export function sqliteInit() {
     CREATE INDEX idx_tags_filter_id ON tags(filter_id);`)
 }
 
-export function nextSocketId() {
-  const [[lastId]] = db.query(
-    'INSERT INTO socket (id) VALUES (NULL) RETURNING id',
-  )
-  return lastId
+export function addSocket(id) {
+  db.query('INSERT INTO socket (id) VALUES (?)', [id])
 }
 
 export function closeSub(id, subId) {
@@ -80,7 +77,7 @@ export function closeSub(id, subId) {
   )
 }
 
-export function closeSocket(id) {
+export function delSocket(id) {
   db.query('DELETE FROM socket WHERE id = ?', [id])
 }
 
