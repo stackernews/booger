@@ -133,9 +133,11 @@ export function waitForEvents(ws, num = 1) {
       clearTimeout(to)
       const msg = JSON.parse(data)
       if (msg[0] === 'EVENT') {
-        events.push(JSON.parse(data)[2])
+        events.push(msg[2])
       } else if (msg[0] === 'EOSE') {
         events.push(msg[0])
+      } else if (msg[0] === 'NOTICE') {
+        reject(new Error(`notice: ${msg[1]}`))
       } else {
         reject(new Error(`unexpected event type ${data}`))
       }

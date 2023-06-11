@@ -16,7 +16,7 @@ export default {
   // max number of tags allowed, i.e. LEN([[tagId, tadData, ...], ...])
   maxTagCount: 2500,
   // max content field size
-  maxContentSize: 10 * 1024,
+  maxContentSize: 100 * 1024,
   // max ids in filter
   maxIds: 1000,
   // max authors in filter

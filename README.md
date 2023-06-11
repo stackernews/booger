@@ -7,7 +7,7 @@ A nostr relay
 ### 🚨 breaking changes incoming
 
 i'm changing the code a lot in a backwards incompatible way ... this probably
-isn't ready for prod yet until it has defenses either
+isn't ready for prod yet (until I run it in prod more myself)
 
 # what booger does
 
@@ -19,9 +19,10 @@ isn't ready for prod yet until it has defenses either
 
 # what booger doesn't do (yet)
 
-- defend itself: no rate limits, spam prevention, payments
-  - these will soon (tm) be provided as [booger plugs](/plugs/README.md)
+- elaborate defenses: spam filtering, payments
+  - these are probably best provided as [booger plugs](/plugs/README.md)
 - use postgres read replicas
+- compile into a single executable
 
 # booger in words
 
@@ -57,11 +58,15 @@ isn't ready for prod yet until it has defenses either
 
 # what's currently configurable
 
-- You can alter NIP-11 responses by changing `NIP-11.json`
-- You can configure the builtin validation by changing values in
+- NIP-11 responses by changing `NIP-11.json`
+- The builtin validation by changing values in
   `plugs/builtins/validate/validate.config.js`
-- You can set booger port and postgres url, `PORT` and `DB_URL` respectively,
-  through `env` vars
+- The builtin rate limits by changing values in
+  `plugs/builtins/limits/limits.config.js`
+- booger port and postgres url, `PORT` and `DB_URL` respectively, through `env`
+  vars
+- The postgres url's for stats and limits booger plugs, `STATS_DB_URL` and
+  `LIMITS_DB_URL` respectively
 
 # what booger wants
 

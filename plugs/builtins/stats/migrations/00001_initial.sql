@@ -7,7 +7,7 @@ CREATE TABLE conns (
 
 CREATE TABLE subs (
   id BIGSERIAL PRIMARY KEY,
-  conn_id TEXT REFERENCES conns(id) ON DELETE CASCADE,
+  conn_id TEXT,
   nostr_sub_id TEXT,
   eose_count INTEGER DEFAULT 0,
   eose_at TIMESTAMP WITHOUT TIME ZONE,
@@ -58,14 +58,14 @@ CREATE TABLE vals (
 
 CREATE TABLE notices (
   id BIGSERIAL PRIMARY KEY,
-  conn_id TEXT REFERENCES conns(id) ON DELETE CASCADE,
+  conn_id TEXT,
   msg TEXT,
   created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (NOW() AT TIME ZONE 'UTC')
 );
 
 CREATE TABLE errors (
   id BIGSERIAL PRIMARY KEY,
-  conn_id TEXT REFERENCES conns(id) ON DELETE CASCADE,
+  conn_id TEXT,
   error JSONB,
   created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (NOW() AT TIME ZONE 'UTC')
 );

@@ -75,7 +75,7 @@ export async function plugsInit() {
 }
 
 export async function plugsAction(action, conn, data) {
-  return await Promise.all(plugs[action].map((worker) => {
+  const result = await Promise.allSettled(plugs[action].map((worker) => {
     return new Promise((resolve, reject) => {
       worker.onmessage = ({ data }) => {
         if (!data.accept) {
@@ -91,4 +91,8 @@ export async function plugsAction(action, conn, data) {
       }
     })
   }))
+
+  result.filter((r) => r.status === 'rejected').forEach((element) => {
+    throw element.reason
+  })
 }

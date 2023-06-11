@@ -58,10 +58,10 @@ message from booger in the form:
 {
    conn: {
       id: UUID // unique id to this connection
-      headers: JSON // http headers as a json object
+      headers: Object // http headers as a json object
    },
    action: String, // e.g. 'connect'
-   data: JSON // depends on the action and are documented further down
+   data: Object // depends on the action and are documented further down
 }
 ```
 
@@ -131,7 +131,7 @@ messages. This data varies depending on the action.
 8. `'error'`
    - ```jsonc
      data: {
-        error: JSON, // the Error object as JSON
+        error: Object, // the Error object as a json object
      }
      ```
 
@@ -216,7 +216,7 @@ self.onmessage = ({ data }) => {
    - [subscriptions](/plugs/builtins/validate/sub.js)
 2. [stats](/plugs/builtins/stats/stats.js) stores connection and subscription
    statistics
-3. rate-limiting soon (tm)
+3. [limits](/plugs/builtins/limits/limits.js) provides some basic rate limiting
 
 # ignoring files in `/plugs`
 

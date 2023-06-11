@@ -142,6 +142,7 @@ function delSocket(ws) {
 }
 
 function handleError(ws, error) {
+  console.error(error)
   plugsAction('error', ws.booger, {
     error: {
       name: error.name,
