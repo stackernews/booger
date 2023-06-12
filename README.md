@@ -63,10 +63,11 @@ isn't ready for prod yet (until I run it in prod more myself)
   `plugs/builtins/validate/validate.config.js`
 - The builtin rate limits by changing values in
   `plugs/builtins/limits/limits.config.js`
-- booger port and postgres url, `PORT` and `DB_URL` respectively, through `env`
-  vars
-- The postgres url's for stats and limits booger plugs, `STATS_DB_URL` and
-  `LIMITS_DB_URL` respectively
+- `env` vars
+  - `PORT` the http port booger listens on
+  - `DB_URL` the postgres url
+  - `STATS_DB_URL` the postgres url for the stats booger plug
+  - `LIMITS_DB_URL` the postgres url the the limits booger plug
 
 # what booger wants
 

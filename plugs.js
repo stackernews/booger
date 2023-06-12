@@ -92,7 +92,7 @@ export async function plugsAction(action, conn, data) {
     })
   }))
 
-  result.filter((r) => r.status === 'rejected').forEach((element) => {
-    throw element.reason
+  result.forEach((r) => {
+    if (r.status === 'rejected') throw r.reason
   })
 }
