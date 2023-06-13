@@ -36,6 +36,7 @@ export async function plugsInit() {
   for await (
     const p of walk('./plugs/', { exts: ['.js', '.ts'], skip: ignorePatterns })
   ) {
+    console.log(`plug ${p.path} found, registering...`)
     // start the worker and ask it which events it wants to listen to
     try {
       const worker = new Worker(new URL(p.path, import.meta.url).href, {

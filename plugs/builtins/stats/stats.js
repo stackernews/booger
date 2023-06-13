@@ -1,5 +1,5 @@
 import postgres from 'postgres'
-import shift from 'postgres-shift'
+import migrate from '/migrate.js'
 
 let pg
 export async function pgInit() {
@@ -12,10 +12,7 @@ export async function pgInit() {
       },
     },
   )
-  await shift({
-    sql: pg,
-    path: new URL('./migrations', import.meta.url).pathname,
-  })
+  await migrate(pg, new URL('./migrations', import.meta.url).pathname)
 }
 
 self.onmessage = async ({ data }) => {

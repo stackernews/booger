@@ -1,6 +1,6 @@
 import postgres from 'postgres'
-import shift from 'postgres-shift'
 import CONFIG from './limits.config.js'
+import migrate from '/migrate.js'
 
 function hashCode(s) {
   return [...s].reduce(
@@ -20,10 +20,7 @@ export async function pgInit() {
       },
     },
   )
-  await shift({
-    sql: pg,
-    path: new URL('./migrations', import.meta.url).pathname,
-  })
+  await migrate(pg, new URL('./migrations', import.meta.url).pathname)
 }
 
 self.onmessage = async ({ data }) => {

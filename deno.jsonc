@@ -5,12 +5,11 @@
     "test": "deno test --unstable --trace-ops -A test"
   },
   "imports": {
-    "std/": "https://deno.land/std@0.190.0/",
+    "std/": "https://deno.land/std@0.191.0/",
     "postgres": "https://deno.land/x/postgresjs@v3.3.3/mod.js",
-    "postgres-shift": "https://deno.land/x/postgres_shift@v1.0.0/mod.ts",
     "sqlite": "https://deno.land/x/sqlite@v3.7.0/mod.ts",
     "zod": "https://deno.land/x/zod@v3.20.5/mod.ts",
-    "crypto": "https://deno.land/std@0.190.0/crypto/mod.ts", // needed for secp
+    "crypto": "https://deno.land/std@0.191.0/crypto/mod.ts", // needed for secp
     "secp": "https://deno.land/x/secp256k1@1.7.1/mod.ts",
     "/" : "./", // project root for absolute imports
     "./": "./"
