@@ -6,10 +6,10 @@
   },
   "imports": {
     "std/": "https://deno.land/std@0.191.0/",
-    "postgres": "https://deno.land/x/postgresjs@v3.3.3/mod.js",
-    "sqlite": "https://deno.land/x/sqlite@v3.7.0/mod.ts",
-    "zod": "https://deno.land/x/zod@v3.20.5/mod.ts",
-    "secp": "npm:@noble/curves/secp256k1",
+    "postgres": "https://deno.land/x/postgresjs@v3.3.5/mod.js",
+    "sqlite": "https://deno.land/x/sqlite@v3.7.2/mod.ts",
+    "zod": "https://deno.land/x/zod@v3.21.4/mod.ts",
+    "secp": "npm:@noble/curves@1.1.0/secp256k1",
     "/": "./", // project root for absolute imports
     "./": "./"
   },
