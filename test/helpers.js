@@ -1,6 +1,6 @@
 import 'std/dotenv/load.ts'
 import { toHashString } from 'std/crypto/mod.ts'
-import * as secp from 'secp'
+import { schnorr } from 'secp'
 import { assertObjectMatch } from 'std/testing/asserts.ts'
 
 let eventCount = 0
@@ -32,8 +32,8 @@ export function disconnect(person) {
 }
 
 export async function createPersona() {
-  const privkey = secp.utils.bytesToHex(secp.utils.randomPrivateKey())
-  const pubkey = secp.utils.bytesToHex(secp.schnorr.getPublicKey(privkey))
+  const privkey = toHashString(schnorr.utils.randomPrivateKey())
+  const pubkey = toHashString(schnorr.getPublicKey(privkey))
   const author = {
     privkey,
     pubkey,
@@ -68,7 +68,7 @@ export async function createEvent(input, privkey) {
 }
 
 export function signHexStr(data, privkey) {
-  return secp.utils.bytesToHex(secp.schnorr.signSync(data, privkey))
+  return toHashString(schnorr.sign(data, privkey))
 }
 
 export async function sha256HexStr(str) {

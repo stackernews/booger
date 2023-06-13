@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import * as secp from 'secp'
+import { schnorr } from 'secp'
 import { crypto, toHashString } from 'std/crypto/mod.ts'
 import CONFIG from './validate.config.js'
 
@@ -38,13 +38,10 @@ export const zEvent = z.object({
   } catch {
     return false
   }
-}, { message: 'invalid: id not equal to sha256 of note' }).refine(async (e) => {
-  try {
-    return await secp.schnorr.verify(e.sig, e.id, e.pubkey)
-  } catch {
-    return false
-  }
-}, { message: 'invalid: sig does not match pubkey' })
+}, { message: 'invalid: id not equal to sha256 of note' }).refine(
+  (e) => schnorr.verify(e.sig, e.id, e.pubkey),
+  { message: 'invalid: sig does not match pubkey' },
+)
 
 export const zFilter = z.object({
   ids: z.array(zPrefix).max(CONFIG.maxIds),
@@ -107,7 +104,7 @@ export async function validateDelegation(kind, createdAt, pubkey, delegation) {
   const { kinds, to, from } = await zDelegate.parseAsync(delegation)
 
   try {
-    await secp.schnorr.verify(
+    schnorr.verify(
       delegation[2],
       await sha256HexStr(
         ['nostr', 'delegation', pubkey, delegation[1]].join(':'),
