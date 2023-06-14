@@ -9,7 +9,7 @@ import {
   createPersona,
   disconnect,
   sendEvent,
-  subscribe,
+  subscribeWaitForEOSE,
   subWaitForEvents,
   unsubscribe,
   waitForEvents,
@@ -29,11 +29,12 @@ describe('nip-16', () => {
   })
 
   it('replaces an event', async () => {
-    // alice subscribes to bob
     const subName = `test-${Math.random()}`
-    let promisedEvents = waitForEvents(alice.ws, 2)
-    subscribe(alice.ws, subName, [{ authors: [bob.pubkey] }])
+    // alice subscribes to bob
+    await subscribeWaitForEOSE(alice.ws, [{ authors: [bob.pubkey] }], subName)
+
     // bob sends a replaceable event
+    let promisedEvents = waitForEvents(alice.ws, 1)
     const createdNote = await createEvent({
       pubkey: bob.pubkey,
       kind: 10000,
@@ -43,7 +44,7 @@ describe('nip-16', () => {
     let recvEvents = await promisedEvents
 
     // alice gets it
-    assertArrayIncludes(recvEvents, ['EOSE', createdNote])
+    assertArrayIncludes(recvEvents, [createdNote])
 
     // bob replaces the event
     promisedEvents = waitForEvents(alice.ws, 1)
@@ -70,11 +71,12 @@ describe('nip-16', () => {
   })
 
   it('supports emphemeral events', async () => {
-    // alice subscribes to bob
     const subName = `test-${Math.random()}`
-    const promisedEvents = waitForEvents(alice.ws, 2)
-    subscribe(alice.ws, subName, [{ authors: [bob.pubkey] }])
+    // alice subscribes to bob
+    await subscribeWaitForEOSE(alice.ws, [{ authors: [bob.pubkey] }], subName)
+
     // bob sends an ephemeral event
+    const promisedEvents = waitForEvents(alice.ws, 1)
     const note = await createEvent({
       pubkey: bob.pubkey,
       kind: 20000,
@@ -84,7 +86,7 @@ describe('nip-16', () => {
     let recvEvents = await promisedEvents
 
     // alice gets it
-    assertArrayIncludes(recvEvents, ['EOSE', note])
+    assertArrayIncludes(recvEvents, [note])
 
     // alice resubscribes
     unsubscribe(alice.ws, subName)

@@ -9,7 +9,7 @@ import {
   createPersona,
   disconnect,
   sendEvent,
-  subscribe,
+  subscribeWaitForEOSE,
   subWaitForEvents,
   unsubscribe,
   waitForEvents,
@@ -29,11 +29,12 @@ describe('nip-33', () => {
   })
 
   it('is replaceable by parameter', async () => {
-    // alice subscribes to bob
     const subName = `test-${Math.random()}`
-    let promisedEvents = waitForEvents(alice.ws, 2)
-    subscribe(alice.ws, subName, [{ authors: [bob.pubkey] }])
+    // alice subscribes to bob
+    await subscribeWaitForEOSE(alice.ws, [{ authors: [bob.pubkey] }], subName)
+
     // bob sends a replaceable event
+    let promisedEvents = waitForEvents(alice.ws, 1)
     const createdNote = await createEvent({
       pubkey: bob.pubkey,
       kind: 30000,
@@ -44,7 +45,7 @@ describe('nip-33', () => {
     let recvEvents = await promisedEvents
 
     // alice gets it
-    assertArrayIncludes(recvEvents, ['EOSE', createdNote])
+    assertArrayIncludes(recvEvents, [createdNote])
 
     // bob replaces the event
     promisedEvents = waitForEvents(alice.ws, 1)

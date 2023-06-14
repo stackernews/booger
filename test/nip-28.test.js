@@ -6,7 +6,7 @@ import {
   createPersona,
   disconnect,
   sendEvent,
-  subscribe,
+  subscribeWaitForEOSE,
   waitForEvents,
 } from './helpers.js'
 
@@ -44,10 +44,10 @@ describe('nip-28', () => {
 
   it('sets and updates metadata for channel', async () => {
     // alice subscribes to bob
-    const subName = `test-${Math.random()}`
-    let promisedEvents = waitForEvents(alice.ws, 2)
-    subscribe(alice.ws, subName, [{ authors: [bob.pubkey] }])
+    await subscribeWaitForEOSE(alice.ws, [{ authors: [bob.pubkey] }])
+
     // bob creates a channel event
+    let promisedEvents = waitForEvents(alice.ws, 1)
     const createdNote = await createEvent({
       pubkey: bob.pubkey,
       kind: 40,
@@ -63,7 +63,7 @@ describe('nip-28', () => {
     const recvEvents = await promisedEvents
 
     // alice gets it
-    assertArrayIncludes(recvEvents, ['EOSE', createdNote])
+    assertArrayIncludes(recvEvents, [createdNote])
 
     // bob resets the metadata
     promisedEvents = waitForEvents(alice.ws, 1)

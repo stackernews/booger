@@ -1,7 +1,7 @@
 import 'std/dotenv/load.ts'
 import { toHashString } from 'std/crypto/mod.ts'
 import { schnorr } from 'secp'
-import { assertObjectMatch } from 'std/testing/asserts.ts'
+import { assertArrayIncludes, assertObjectMatch } from 'std/testing/asserts.ts'
 
 let eventCount = 0
 
@@ -117,6 +117,12 @@ export function subscribe(ws, name, filters) {
   ])
 
   ws.send(data)
+}
+
+export async function subscribeWaitForEOSE(ws, filters, subName) {
+  const promisedEvents = waitForEvents(ws, 1)
+  subscribe(ws, subName || `test-${Math.random()}`, filters)
+  assertArrayIncludes(await promisedEvents, ['EOSE'])
 }
 
 export function unsubscribe(ws, name) {
