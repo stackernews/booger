@@ -54,8 +54,8 @@ isn't ready for prod yet (until I run it in prod more myself)
      thus I recommmend using `1.32.1` for the time being
 2. clone booger
 3. configure env in `.env.defaults`
-   - _if any of the `DB_URL`s don't exist, including the builtin booger plug
-     ones, booger will attempt to create them for you_
+   - _if any of the databases from the `DB_URL`s don't exist, including the
+     builtin booger plug ones, booger will attempt to create them for you_
 4. deno task dev
 
 # what's currently configurable
