@@ -1,6 +1,6 @@
-import postgres from 'postgres'
 import CONFIG from './limits.config.js'
 import migrate from '/migrate.js'
+import { crennect } from '/pg.js'
 
 function hashCode(s) {
   return [...s].reduce(
@@ -11,16 +11,11 @@ function hashCode(s) {
 
 let pg
 export async function pgInit() {
-  pg = postgres(
-    Deno.env.get('LIMITS_DB_URL'),
-    {
-      // debug: console.log,
-      transform: {
-        undefined: null,
-      },
-    },
-  )
-  await migrate(pg, new URL('./migrations', import.meta.url).pathname)
+  pg = await crennect(Deno.env.get('LIMITS_DB_URL'))
+  await migrate(pg, {
+    migrations: new URL('./migrations', import.meta.url).pathname,
+    table: 'booger_limits_migrations',
+  })
 }
 
 self.onmessage = async ({ data }) => {

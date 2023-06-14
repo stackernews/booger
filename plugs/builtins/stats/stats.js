@@ -1,18 +1,13 @@
-import postgres from 'postgres'
+import { crennect } from '/pg.js'
 import migrate from '/migrate.js'
 
 let pg
 export async function pgInit() {
-  pg = postgres(
-    Deno.env.get('STATS_DB_URL'),
-    {
-      // debug: console.log,
-      transform: {
-        undefined: null,
-      },
-    },
-  )
-  await migrate(pg, new URL('./migrations', import.meta.url).pathname)
+  pg = await crennect(Deno.env.get('STATS_DB_URL'))
+  await migrate(pg, {
+    migrations: new URL('./migrations', import.meta.url).pathname,
+    table: 'booger_stats_migrations',
+  })
 }
 
 self.onmessage = async ({ data }) => {

@@ -2,17 +2,14 @@ import postgres from 'postgres'
 import migrate from './migrate.js'
 
 let pg
+
 export async function pgInit() {
-  pg = postgres(
-    Deno.env.get('DB_URL'),
-    {
-      // debug: console.log,
-      transform: {
-        undefined: null,
-      },
-    },
-  )
-  await migrate(pg, new URL('./migrations', import.meta.url).pathname)
+  self.addEventListener('unload', async () => await pg?.end())
+  pg = await crennect(Deno.env.get('DB_URL'))
+  await migrate(pg, {
+    migrations: new URL('./migrations', import.meta.url).pathname,
+    table: 'booger_migrations',
+  })
 }
 
 export async function listen(handleEvent) {
@@ -124,5 +121,46 @@ export async function forEachEvent(filters, cb) {
     for await (const rows of cursor) {
       rows.forEach((row) => cb(row[0]))
     }
+  }
+}
+
+function connect(url) {
+  return postgres(
+    url,
+    {
+      // debug: console.log,
+      transform: {
+        undefined: null,
+      },
+    },
+  )
+}
+
+export async function crennect(url) {
+  try {
+    const pgTry = connect(url)
+    await pgTry`SELECT 1`
+    return pgTry
+  } catch (e) {
+    if (e.code === '3D000') {
+      try {
+        const urlObj = new URL(url.replace('postgresql://', 'http://'))
+        const db = urlObj.pathname.slice(1)
+
+        console.log(`database ${db} does not exist, attempting to create ...`)
+
+        urlObj.pathname = '/postgres' // common default
+        const tempUrl = urlObj.toString().replace('http://', 'postgresql://')
+        const tempPg = postgres(tempUrl)
+        await tempPg.unsafe(`CREATE DATABASE ${db}`)
+        await tempPg.end()
+        console.log(`created ${db} successfully`)
+      } catch {
+        throw e
+      }
+
+      return connect(url)
+    }
+    throw e
   }
 }

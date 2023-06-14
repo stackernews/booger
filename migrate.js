@@ -3,17 +3,6 @@ import { basename } from 'std/path/mod.ts'
 import { crypto, toHashString } from 'std/crypto/mod.ts'
 
 const LOCK_ID = -800635800635800635n
-const META_MIGRATIONS = new Map([
-  [
-    'migrations',
-    `CREATE TABLE migrations (
-      id SERIAL PRIMARY KEY,
-      name TEXT UNIQUE NOT NULL,
-      created_at TIMESTAMPTZ DEFAULT (NOW() at time zone 'UTC'),
-      hash TEXT NOT NULL
-    );`,
-  ],
-])
 
 async function hash(str) {
   return toHashString(
@@ -24,17 +13,31 @@ async function hash(str) {
   )
 }
 
-export default async function migrate(pg, migrations) {
+export default async function migrate(pg, { migrations, table }) {
+  if (!table) {
+    throw new Error('migrate: migrations table name must be provided')
+  }
+
+  const META_MIGRATIONS = new Map([
+    [
+      `create_${table}`,
+      `CREATE TABLE ${table} (
+        id SERIAL PRIMARY KEY,
+        name TEXT UNIQUE NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT (NOW() at time zone 'UTC'),
+        hash TEXT NOT NULL
+      );`,
+    ],
+  ])
+
   try {
     try {
-      console.debug('migrate: acquiring advisory lock...')
       while (true) {
         const [{ lock }] =
           await pg`SELECT pg_try_advisory_lock(${LOCK_ID}) as lock`
         if (lock) break
         await new Promise((res) => setTimeout(res, 1000))
       }
-      console.debug('migrate: acquired advisory lock')
     } catch (e) {
       console.error(`migrate: error acquiring advisory lock ${e.message}`)
       throw e
@@ -58,13 +61,14 @@ export default async function migrate(pg, migrations) {
     }
 
     // get unapplied migrations
-    migrations = await unapplied(pg, migrations)
+    migrations = await unapplied(pg, migrations, table)
 
     // apply them
     for (const [name, { migration, hash }] of migrations) {
+      console.log(`migrate: applying ${name}...`)
       await pg.begin(async (pg) => {
         await pg.unsafe(migration)
-        await pg`INSERT INTO migrations (name, hash)
+        await pg`INSERT INTO ${pg.unsafe(table)} (name, hash)
           VALUES (${name}, ${hash})`
       })
       console.log(`migrate: applied ${name}...`)
@@ -74,26 +78,24 @@ export default async function migrate(pg, migrations) {
     throw e
   } finally {
     try {
-      console.debug('migrate: releasing advisory lock...')
       await pg`SELECT pg_advisory_unlock(${LOCK_ID})`
-      console.debug('migrate: released advisory lock')
     } catch (e) {
       console.error(`migrate: error releasing advisory lock: ${e.message}`)
     }
   }
 }
 
-async function unapplied(pg, pending) {
+async function unapplied(pg, pending, table) {
   const migrations = new Map(pending)
   // get applied migrations if they exist
   const [{ exists }] = await pg`SELECT EXISTS (
         SELECT 1
         FROM   pg_catalog.pg_class c
-        WHERE  c.relname = 'migrations'
+        WHERE  c.relname = ${table}
         AND    c.relkind = 'r'
       )`
   const applied = exists
-    ? await pg`SELECT name, hash FROM migrations ORDER BY id ASC`
+    ? await pg`SELECT name, hash FROM ${pg.unsafe(table)} ORDER BY id ASC`
     : []
 
   // any applied must exist in migrations, match hash and name, and be in order
