@@ -34,7 +34,7 @@ async function getIgnorePatterns() {
   return patterns
 }
 
-// when we compile, the builtin plugs won't be present
+// when we compile, the plugs dir won't be present
 const BUILTIN = [
   './plugs/builtin/validate/sub.js',
   './plugs/builtin/validate/event.js',

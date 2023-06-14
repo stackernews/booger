@@ -22,7 +22,6 @@ isn't ready for prod yet (until I run it in prod more myself)
 - elaborate defenses: spam filtering, payments
   - these are probably best provided as [booger plugs](/plugs/README.md)
 - use postgres read replicas
-- compile into a single executable
 
 # booger in words
 
@@ -48,10 +47,9 @@ isn't ready for prod yet (until I run it in prod more myself)
 
 0. [install postgres](https://www.postgresql.org/download/) and run it (welcome
    to app programming)
-1. [insall deno 1.32.1](https://deno.land/) (welcome to deno)
+1. [insall deno 1.34.2](https://deno.land/) (welcome to deno)
    - 🚨
-     [recent deno release's websocket implementation crashes booger reliably](https://github.com/denoland/deno/issues/17283),
-     thus I recommmend using `1.32.1` for the time being
+     [other versions of deno might not play well with booger](https://github.com/denoland/deno/issues/17283)
 2. clone booger
 3. configure env in `.env.defaults`
    - _if any of the databases from the `DB_URL`s don't exist, including the
