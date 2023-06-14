@@ -14,7 +14,11 @@ import { plugsAction, plugsInit } from './plugs.js'
 const sockets = new Map() // map[socket id][websocket]
 sqliteInit()
 await pgInit()
-await plugsInit()
+try {
+  await plugsInit()
+} catch (e) {
+  console.error(e)
+}
 await listen((e) => {
   forEachSub(JSON.parse(e), (id, subId) => {
     const ws = sockets.get(id)
@@ -147,7 +151,7 @@ function handleError(ws, error) {
     error: {
       name: error.name,
       message: error.message,
-      stack: error.stack.split('\n'),
+      stack: error.stack?.split('\n'),
       code: error.code,
       errno: error.errno,
       syscall: error.syscall,

@@ -1,6 +1,6 @@
 import CONFIG from './limits.config.js'
-import migrate from '/migrate.js'
-import { crennect } from '/pg.js'
+import migrate from '../../../migrate.js'
+import { crennect } from '../../../pg.js'
 
 function hashCode(s) {
   return [...s].reduce(

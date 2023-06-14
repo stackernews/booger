@@ -139,11 +139,12 @@ function connect(url) {
 export async function crennect(url) {
   try {
     const pgTry = connect(url)
-    await pgTry`SELECT 1`
+    await pgTry`SELECT 1` // conn doesn't happen until first query
     return pgTry
   } catch (e) {
-    if (e.code === '3D000') {
+    if (e.code === '3D000') { // database does not exist
       try {
+        // trick URL into parsing postgresql:// as http://
         const urlObj = new URL(url.replace('postgresql://', 'http://'))
         const db = urlObj.pathname.slice(1)
 

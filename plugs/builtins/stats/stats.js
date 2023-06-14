@@ -1,5 +1,5 @@
-import { crennect } from '/pg.js'
-import migrate from '/migrate.js'
+import { crennect } from '../../../pg.js'
+import migrate from '../../../migrate.js'
 
 let pg
 export async function pgInit() {
