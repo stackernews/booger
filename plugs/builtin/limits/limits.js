@@ -1,6 +1,7 @@
 import CONFIG from './limits.config.js'
-import migrate from '../../../migrate.js'
+import remodel from '../../../remodel.js'
 import { crennect } from '../../../pg.js'
+import migrations from './migrations/index.js'
 
 function hashCode(s) {
   return [...s].reduce(
@@ -12,8 +13,8 @@ function hashCode(s) {
 let pg
 export async function pgInit() {
   pg = await crennect(Deno.env.get('LIMITS_DB_URL'))
-  await migrate(pg, {
-    migrations: new URL('./migrations', import.meta.url).pathname,
+  await remodel(pg, {
+    migrations,
     table: 'booger_limits_migrations',
   })
 }

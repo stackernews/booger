@@ -62,9 +62,9 @@ isn't ready for prod yet (until I run it in prod more myself)
 
 - NIP-11 responses by changing `NIP-11.json`
 - The builtin validation by changing values in
-  `plugs/builtins/validate/validate.config.js`
+  `plugs/builtin/validate/validate.config.js`
 - The builtin rate limits by changing values in
-  `plugs/builtins/limits/limits.config.js`
+  `plugs/builtin/limits/limits.config.js`
 - `env` vars
   - `PORT` the http port booger listens on
   - `DB_URL` the postgres url

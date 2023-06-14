@@ -1,13 +1,14 @@
 import postgres from 'postgres'
-import migrate from './migrate.js'
+import remodel from './remodel.js'
+import migrations from './migrations/index.js'
 
 let pg
 
 export async function pgInit() {
   self.addEventListener('unload', async () => await pg?.end())
   pg = await crennect(Deno.env.get('DB_URL'))
-  await migrate(pg, {
-    migrations: new URL('./migrations', import.meta.url).pathname,
+  await remodel(pg, {
+    migrations,
     table: 'booger_migrations',
   })
 }
@@ -144,15 +145,12 @@ export async function crennect(url) {
   } catch (e) {
     if (e.code === '3D000') { // database does not exist
       try {
-        // trick URL into parsing postgresql:// as http://
-        const urlObj = new URL(url.replace('postgresql://', 'http://'))
+        const urlObj = new URL(url)
         const db = urlObj.pathname.slice(1)
 
         console.log(`database ${db} does not exist, attempting to create ...`)
-
         urlObj.pathname = '/postgres' // common default
-        const tempUrl = urlObj.toString().replace('http://', 'postgresql://')
-        const tempPg = postgres(tempUrl)
+        const tempPg = postgres(urlObj)
         await tempPg.unsafe(`CREATE DATABASE ${db}`)
         await tempPg.end()
         console.log(`created ${db} successfully`)

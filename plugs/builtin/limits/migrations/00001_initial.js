@@ -1,3 +1,4 @@
+export default `
 CREATE TABLE conns (
   id TEXT PRIMARY KEY,
   ip TEXT UNIQUE,
@@ -26,4 +27,4 @@ CREATE TABLE subs (
 );
 
 CREATE UNIQUE INDEX subs_conn_id_ip_idx ON subs (conn_id, ip);
-CREATE UNIQUE INDEX subs_conn_id_nostr_sub_id_idx ON subs (conn_id, nostr_sub_id);
+CREATE UNIQUE INDEX subs_conn_id_nostr_sub_id_idx ON subs (conn_id, nostr_sub_id);`

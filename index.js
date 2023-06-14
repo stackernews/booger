@@ -14,11 +14,7 @@ import { plugsAction, plugsInit } from './plugs.js'
 const sockets = new Map() // map[socket id][websocket]
 sqliteInit()
 await pgInit()
-try {
-  await plugsInit()
-} catch (e) {
-  console.error(e)
-}
+await plugsInit()
 await listen((e) => {
   forEachSub(JSON.parse(e), (id, subId) => {
     const ws = sockets.get(id)

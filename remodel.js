@@ -13,9 +13,9 @@ async function hash(str) {
   )
 }
 
-export default async function migrate(pg, { migrations, table }) {
+export default async function remodel(pg, { migrations, table }) {
   if (!table) {
-    throw new Error('migrate: migrations table name must be provided')
+    throw new Error('remodel: migrations table name must be provided')
   }
 
   const META_MIGRATIONS = new Map([
@@ -39,7 +39,7 @@ export default async function migrate(pg, { migrations, table }) {
         await new Promise((res) => setTimeout(res, 1000))
       }
     } catch (e) {
-      console.error(`migrate: error acquiring advisory lock ${e.message}`)
+      console.error(`remodel: error acquiring advisory lock ${e.message}`)
       throw e
     }
 
@@ -47,7 +47,7 @@ export default async function migrate(pg, { migrations, table }) {
       migrations = await fromDir(migrations)
     } else if (migrations instanceof Map === false) {
       throw new Error(
-        'migrate: second arg to migrate must be a Map of name => migration' +
+        'remodel: second arg to remodel must be a Map of name => migration' +
           ' or a directory path',
       )
     }
@@ -65,22 +65,22 @@ export default async function migrate(pg, { migrations, table }) {
 
     // apply them
     for (const [name, { migration, hash }] of migrations) {
-      console.log(`migrate: applying ${name}...`)
+      console.log(`remodel: applying ${name}...`)
       await pg.begin(async (pg) => {
         await pg.unsafe(migration)
         await pg`INSERT INTO ${pg.unsafe(table)} (name, hash)
           VALUES (${name}, ${hash})`
       })
-      console.log(`migrate: applied ${name}...`)
+      console.log(`remodel: applied ${name}...`)
     }
   } catch (e) {
-    console.error(`migrate: error while using lock: ${e.message}`)
+    console.error(`remodel: error while using lock: ${e.message}`)
     throw e
   } finally {
     try {
       await pg`SELECT pg_advisory_unlock(${LOCK_ID})`
     } catch (e) {
-      console.error(`migrate: error releasing advisory lock: ${e.message}`)
+      console.error(`remodel: error releasing advisory lock: ${e.message}`)
     }
   }
 }
@@ -106,19 +106,19 @@ async function unapplied(pg, pending, table) {
     if (mName !== name) {
       if (migrations.has(name)) {
         throw new Error(
-          'migrate: applied migrations are missing from the migrations' +
+          'remodel: applied migrations are missing from the migrations' +
             ' passed in or are out of order',
         )
       } else {
         throw new Error(
-          `migrate: ${name} is applied but was not found in migrations passed in`,
+          `remodel: ${name} is applied but was not found in migrations passed in`,
         )
       }
     }
 
     if (hash !== mHash) {
       throw new Error(
-        `migrate: migration ${name} is applied but hash has changed`,
+        `remodel: migration ${name} is applied but hash has changed`,
       )
     }
     migrations.delete(name)
@@ -134,7 +134,7 @@ async function fromDir(dir) {
     const name = basename(entry.path, '.sql')
 
     if (migrations.has(name)) {
-      throw new Error(`migrate: migration name collision on ${name}`)
+      throw new Error(`remodel: migration name collision on ${name}`)
     }
 
     migrations.set(name, entry.path)

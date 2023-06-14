@@ -1,3 +1,4 @@
+export default `
 CREATE EXTENSION btree_gin;
 
 CREATE TABLE event (
@@ -64,4 +65,4 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER event_prevent_deleted_trigger
   BEFORE INSERT ON event
   FOR EACH ROW
-  EXECUTE PROCEDURE event_prevent_deleted();
+  EXECUTE PROCEDURE event_prevent_deleted();`

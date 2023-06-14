@@ -3,3 +3,4 @@
 # intended to support a .gitignore-like syntax, but might be buggy
 *.config.js
 validate.js
+migrations/**/*.js

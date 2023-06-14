@@ -209,14 +209,14 @@ self.onmessage = ({ data }) => {
 }
 ```
 
-# builtins
+# builtin
 
 1. validation
-   - [events](/plugs/builtins/validate/event.js)
-   - [subscriptions](/plugs/builtins/validate/sub.js)
-2. [stats](/plugs/builtins/stats/stats.js) stores connection and subscription
+   - [events](/plugs/builtin/validate/event.js)
+   - [subscriptions](/plugs/builtin/validate/sub.js)
+2. [stats](/plugs/builtin/stats/stats.js) stores connection and subscription
    statistics
-3. [limits](/plugs/builtins/limits/limits.js) provides some basic rate limiting
+3. [limits](/plugs/builtin/limits/limits.js) provides some basic rate limiting
 
 # ignoring files in `/plugs`
 

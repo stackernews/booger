@@ -2,6 +2,10 @@ import { walk } from 'std/fs/walk.ts'
 import { globToRegExp } from 'std/path/glob.ts'
 import { readLines } from 'std/io/read_lines.ts'
 import { basename, dirname } from 'std/path/mod.ts'
+import './plugs/builtin/validate/sub.js'
+import './plugs/builtin/validate/event.js'
+import './plugs/builtin/limits/limits.js'
+import './plugs/builtin/stats/stats.js'
 
 const plugs = {
   connect: [],
@@ -30,7 +34,17 @@ async function getIgnorePatterns() {
   return patterns
 }
 
+// when we compile, the builtin plugs won't be present
+const BUILTIN = [
+  './plugs/builtin/validate/sub.js',
+  './plugs/builtin/validate/event.js',
+  './plugs/builtin/limits/limits.js',
+  './plugs/builtin/stats/stats.js',
+]
+
 export async function plugsInit() {
+  const builtins = new Set(BUILTIN.map((p) => new URL(p, import.meta.url).href))
+
   try {
     const ignorePatterns = await getIgnorePatterns()
 
@@ -40,49 +54,63 @@ export async function plugsInit() {
         skip: ignorePatterns,
       })
     ) {
-      console.log(`plug ${p.path} found, registering...`)
+      const href = new URL(p.path, import.meta.url).href
       // start the worker and ask it which events it wants to listen to
-      try {
-        const worker = new Worker(new URL(p.path, import.meta.url).href, {
-          type: 'module',
-          name: basename(p.path, '.js') || basename(p.path, '.ts'),
-        })
-        await new Promise((resolve, reject) => {
-          setTimeout(() =>
-            reject(
-              new Error(
-                `${p.path} did not respond to 'getactions' within 5s. Is it a web worker?`,
-              ),
-            ), 5000)
-
-          worker.onmessage = ({ data }) => {
-            console.log(
-              `plug ${p.path} registered for actions: ${data.join(', ')}`,
-            )
-            for (const action of data) {
-              if (!Object.keys(plugs).includes(action.toLowerCase())) {
-                console.error(
-                  `plug ${p.path} tried to register for unknown action ${action}`,
-                )
-                Deno.exit(1)
-              }
-              plugs[action.toLowerCase()].push(worker)
-            }
-            resolve()
-          }
-          worker.onerror = reject
-          worker.postMessage('getactions')
-        })
-      } catch (e) {
-        console.error(e)
-        Deno.exit(1)
-      }
+      const worker = new Worker(href, {
+        type: 'module',
+        name: basename(p.path, '.js') || basename(p.path, '.ts'),
+      })
+      await plugIn(worker, p.path)
+      builtins.delete(href)
     }
   } catch (e) {
-    if (!(e instanceof Deno.errors.NotFound)) {
-      throw error
+    if (
+      !(e instanceof Deno.errors.NotFound ||
+        e.cause instanceof Deno.errors.NotFound)
+    ) {
+      throw e
     }
   }
+
+  for (const builtin of builtins) {
+    const worker = new Worker(builtin, {
+      type: 'module',
+      name: basename(builtin, '.js') ||
+        basename(builtin, '.ts'),
+    })
+    await plugIn(worker, builtin)
+  }
+}
+
+async function plugIn(worker, name) {
+  return await new Promise((resolve, reject) => {
+    console.log(`plug registering ${name}`)
+
+    setTimeout(() =>
+      reject(
+        new Error(
+          `${name} did not respond to 'getactions' within 5s. Is it a web worker?`,
+        ),
+      ), 5000)
+
+    worker.onmessage = ({ data }) => {
+      console.log(
+        `plug registered ${name} for actions: ${data.join(', ')}`,
+      )
+      for (const action of data) {
+        if (!Object.keys(plugs).includes(action.toLowerCase())) {
+          console.error(
+            `plug ${name} registered for unknown action ${action}`,
+          )
+          Deno.exit(1)
+        }
+        plugs[action.toLowerCase()].push(worker)
+      }
+      resolve()
+    }
+    worker.onerror = reject
+    worker.postMessage('getactions')
+  })
 }
 
 export async function plugsAction(action, conn, data) {

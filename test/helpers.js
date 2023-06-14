@@ -174,6 +174,6 @@ export async function assertSendSubReceive(sender, recver, event, filters) {
   await sendEvent(sender.ws, sent)
   const [received] = await subWaitForEvents(recver.ws, filters, 1)
 
-  assertObjectMatch(sent, received)
+  assertObjectMatch(received, sent)
   return sent
 }

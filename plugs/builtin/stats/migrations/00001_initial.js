@@ -1,3 +1,4 @@
+export default `
 CREATE TABLE conns (
   id TEXT PRIMARY KEY,
   headers JSONB,
@@ -68,4 +69,4 @@ CREATE TABLE errors (
   conn_id TEXT,
   error JSONB,
   created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (NOW() AT TIME ZONE 'UTC')
-);
+);`

@@ -2,7 +2,8 @@
   "tasks": {
     "dev": "deno run $DENO_EXT --unstable --allow-env --allow-net=127.0.0.1,deno.land --allow-read=. index.js",
     "debug": "DENO_EXT=--inspect-brk deno task dev",
-    "test": "deno test --unstable --trace-ops -A test"
+    "test": "deno test --unstable --trace-ops -A test",
+    "compile": "deno compile --unstable -A --include=./plugs/builtin/validate/sub.js --include=./plugs/builtin/validate/event.js --include=./plugs/builtin/limits/limits.js --include=./plugs/builtin/stats/stats.js ./index.js"
   },
   "imports": {
     "std/": "https://deno.land/std@0.191.0/",

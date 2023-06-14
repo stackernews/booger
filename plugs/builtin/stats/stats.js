@@ -1,11 +1,12 @@
 import { crennect } from '../../../pg.js'
-import migrate from '../../../migrate.js'
+import remodel from '../../../remodel.js'
+import migrations from './migrations/index.js'
 
 let pg
 export async function pgInit() {
   pg = await crennect(Deno.env.get('STATS_DB_URL'))
-  await migrate(pg, {
-    migrations: new URL('./migrations', import.meta.url).pathname,
+  await remodel(pg, {
+    migrations,
     table: 'booger_stats_migrations',
   })
 }
