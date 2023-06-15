@@ -35,12 +35,12 @@ There are a handful of things a booger operator might want to plugin to:
 
 You can plugin to these actions by adding one or more
 [Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API)
-to the `plugs` directory.
+to the `./plugs` directory.
 
-On startup, booger will recursively walk `plugs` looking for `.js` and `.ts`
-files. It will load then send workers a `'getactions'` string message. Workers
-must respond with an array containing one or more of the following action
-strings:
+On startup, booger will recursively walk `./plugs` looking for `.js` and `.ts`
+files. It will load and then send workers a `'getactions'` string message.
+Workers must respond with an array containing one or more of the following
+action strings:
 
 1. `'connect'`
 2. `'disconnect'`
@@ -211,6 +211,8 @@ self.onmessage = ({ data }) => {
 
 # builtin
 
+The following plugs are bundled into booger implicitly.
+
 1. validation
    - [events](/plugs/builtin/validate/event.js)
    - [subscriptions](/plugs/builtin/validate/sub.js)
@@ -218,11 +220,16 @@ self.onmessage = ({ data }) => {
    statistics
 3. [limits](/plugs/builtin/limits/limits.js) provides some basic rate limiting
 
+When running booger executables you can prevent these plugs from being used by
+removing them from `./booger.jsonc`.
+
+You can configure these plugs from `./booger.jsonc`.
+
 # ignoring files in `/plugs`
 
-If you want to put files in `/plugs` that aren't workers or that you want
-ignored, you can specify them in a `.plugsignore` file. The intent is to support
-a `.gitignore` like syntax but it might be buggy.
+If you want to put `.js` or `.ts` files in `/plugs` that aren't workers or that
+you want ignored, you can specify them in a `.plugsignore` file. The intent is
+to support a `.gitignore` like syntax.
 
 # thanks to
 

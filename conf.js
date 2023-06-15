@@ -43,7 +43,7 @@ export const CONFIG = `// default configuration file for booger
       33,
       40
     ],
-    "Software": "https://github.com/huumn/booger",
+    "Software": "https://github.com/stackernews/booger",
     "Version": "v0.0.0"
   },
 
