@@ -1,10 +1,13 @@
 import { z } from 'zod'
 import { schnorr } from 'secp'
 import { crypto, toHashString } from 'std/crypto/mod.ts'
-import CONFIG from './validate.config.js'
+import CONFIG from '../../../conf.js'
+
+const VALIDATE = CONFIG?.plugs?.builtin?.validate
+if (!VALIDATE) throw new Error('missing config for validate plug')
 
 export const zPrefix = z.string().regex(
-  new RegExp(`^[a-f0-9]{${CONFIG.minPrefixLength},64}$`),
+  new RegExp(`^[a-f0-9]{${VALIDATE.minPrefixLength},64}$`),
 )
 
 export const zId = z.string().regex(/^[a-f0-9]{64}$/)
@@ -15,22 +18,22 @@ export const zKind = z.number().int().gte(0)
 
 export const zSig = z.string().regex(/^[a-f0-9]{128}$/)
 
-export const zSub = z.string().min(CONFIG.minSubscriptionIdLength)
-  .max(CONFIG.maxSubscriptionIdLength)
+export const zSub = z.string().min(VALIDATE.minSubscriptionIdLength)
+  .max(VALIDATE.maxSubscriptionIdLength)
 
-export const zTime = z.number().int().min(CONFIG.minCreatedAt)
-  .max(CONFIG.maxCreatedAt)
+export const zTime = z.number().int().min(VALIDATE.minCreatedAt)
+  .max(VALIDATE.maxCreatedAt)
 
-export const zTag = z.tuple([z.string().max(CONFIG.maxTagIdLength)])
-  .rest(z.string().max(CONFIG.maxTagDataLength))
+export const zTag = z.tuple([z.string().max(VALIDATE.maxTagIdLength)])
+  .rest(z.string().max(VALIDATE.maxTagDataLength))
 
 export const zEvent = z.object({
   id: zId,
   pubkey: zPubkey,
   created_at: zTime,
   kind: zKind,
-  tags: z.array(zTag).max(CONFIG.maxTagCount),
-  content: z.string().max(CONFIG.maxContentSize),
+  tags: z.array(zTag).max(VALIDATE.maxTagCount),
+  content: z.string().max(VALIDATE.maxContentSize),
   sig: zSig,
 }).refine(async (e) => {
   try {
@@ -44,14 +47,14 @@ export const zEvent = z.object({
 )
 
 export const zFilter = z.object({
-  ids: z.array(zPrefix).max(CONFIG.maxIds),
-  authors: z.array(zPrefix).max(CONFIG.maxAuthors),
-  kinds: z.array(zKind).max(CONFIG.maxKinds),
+  ids: z.array(zPrefix).max(VALIDATE.maxIds),
+  authors: z.array(zPrefix).max(VALIDATE.maxAuthors),
+  kinds: z.array(zKind).max(VALIDATE.maxKinds),
   since: zTime,
   until: zTime,
-  limit: z.number().int().min(CONFIG.minLimit).max(CONFIG.maxLimit),
+  limit: z.number().int().min(VALIDATE.minLimit).max(VALIDATE.maxLimit),
 }).catchall(
-  z.array(z.string().max(CONFIG.maxTagDataLength)).max(CONFIG.maxTagCount),
+  z.array(z.string().max(VALIDATE.maxTagDataLength)).max(VALIDATE.maxTagCount),
 ).partial()
 
 export const zFilters = z.array(zFilter)

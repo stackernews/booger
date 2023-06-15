@@ -2,8 +2,8 @@ import { walk } from 'std/fs/walk.ts'
 import { globToRegExp } from 'std/path/glob.ts'
 import { readLines } from 'std/io/read_lines.ts'
 import { basename, dirname } from 'std/path/mod.ts'
-import './plugs/builtin/validate/sub.js'
-import './plugs/builtin/validate/event.js'
+import './plugs/builtin/validate/validate-sub.js'
+import './plugs/builtin/validate/validate-event.js'
 import './plugs/builtin/limits/limits.js'
 import './plugs/builtin/stats/stats.js'
 
@@ -36,8 +36,8 @@ async function getIgnorePatterns() {
 
 // when we compile, the plugs dir won't be present
 const BUILTIN = [
-  './plugs/builtin/validate/sub.js',
-  './plugs/builtin/validate/event.js',
+  './plugs/builtin/validate/validate-sub.js',
+  './plugs/builtin/validate/validate-event.js',
   './plugs/builtin/limits/limits.js',
   './plugs/builtin/stats/stats.js',
 ]

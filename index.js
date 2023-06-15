@@ -1,4 +1,4 @@
-import 'std/dotenv/load.ts'
+import CONFIG from './conf.js'
 import {
   addSocket as _addSocket,
   closeSub,
@@ -28,10 +28,10 @@ await listen((e) => {
 })
 
 Deno.serve({
-  port: Deno.env.get('PORT'),
-  hostname: '127.0.0.1',
+  port: CONFIG.port,
+  hostname: CONFIG.bind,
   reusePort: true,
-}, async (req) => {
+}, (req) => {
   if (req.headers.get('upgrade')?.toLowerCase() !== 'websocket') {
     const headers = {
       'Access-Control-Allow-Origin': '*',
@@ -40,12 +40,7 @@ Deno.serve({
     }
     // nip 11
     if (req.headers.get('accept') === 'application/nostr+json') {
-      try {
-        const file = await Deno.readTextFile('./NIP-11.json')
-        return new Response(file, { status: 200, headers })
-      } catch {
-        return new Response(null, { status: 500, headers })
-      }
+      return Response.json(conf.nip11, { status: 200, headers })
     }
     return new Response(null, { status: 404, headers })
   }

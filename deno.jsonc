@@ -1,9 +1,15 @@
 {
   "tasks": {
-    "dev": "deno run $DENO_EXT --unstable --allow-env --allow-net=127.0.0.1,deno.land --allow-read=. index.js",
+    "dev": "DENO_PERMS=-A deno task sub-dev",
+    "compile" : "DENO_PERMS=-A deno task sub-compile",
+    "dev-harden": "DENO_TASK=sub-dev deno task harden",
+    "compile-harden": "DENO_TASK=sub-compile deno task harden",
     "debug": "DENO_EXT=--inspect-brk deno task dev",
     "test": "deno test --unstable --trace-ops -A test",
-    "compile": "deno compile --unstable -A --include=./plugs/builtin/validate/sub.js --include=./plugs/builtin/validate/event.js --include=./plugs/builtin/limits/limits.js --include=./plugs/builtin/stats/stats.js ./index.js"
+    "sub-dev": "deno run $DENO_EXT $DENO_PERMS --unstable index.js",
+    "sub-compile": "deno compile $DENO_PERMS --unstable --include=./plugs/builtin/validate/validate-sub.js --include=./plugs/builtin/validate/validate-event.js --include=./plugs/builtin/limits/limits.js --include=./plugs/builtin/stats/stats.js ./index.js",
+    // the postgres module attempts to access an *abundance* of env vars
+    "harden": "DENO_PERMS='--allow-net=127.0.0.1,localhost --allow-read=./booger.jsonc,./plugs --allow-write=./booger.jsonc --allow-env=BIND,PORT,DB,DB_STATS,DB_LIMITS,PGHOST,PGPORT,PGDATABASE,PGUSERNAME,PGUSER,PGPASSWORD,PGIDLE_TIMEOUT,PGCONNECT_TIMEOUT,PGMAX,PGMAX_LIFETIME,PGMAX_PIPELINE,PGSSL,PGBACKOFF,PGKEEP_ALIVE,PGPREPARE,PGDEBUG,PGFETCH_TYPES,PGPUBLICATIONS,PGTARGET_SESSION_ATTRS,PGTARGETSESSIONATTRS,USERNAME,USER,LOGNAME' deno task $DENO_TASK"
   },
   "imports": {
     "std/": "https://deno.land/std@0.191.0/",
