@@ -11,6 +11,8 @@ import {
 import { forEachEvent, listen, pgInit, storeNotify } from './pg.js'
 import { plugsAction, plugsInit } from './plugs.js'
 
+console.log(CONFIG)
+
 const sockets = new Map() // map[socket id][websocket]
 sqliteInit()
 await pgInit()

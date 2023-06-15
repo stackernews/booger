@@ -6,6 +6,7 @@ import './plugs/builtin/validate/validate-sub.js'
 import './plugs/builtin/validate/validate-event.js'
 import './plugs/builtin/limits/limits.js'
 import './plugs/builtin/stats/stats.js'
+import CONFIG from './conf.js'
 
 const plugs = {
   connect: [],
@@ -20,7 +21,7 @@ const plugs = {
 
 async function getIgnorePatterns() {
   const patterns = []
-  for await (const p of walk('./plugs/', { match: ['\.plugsignore'] })) {
+  for await (const p of walk(CONFIG.plugs.dir, { match: ['\.plugsignore'] })) {
     const fileReader = await Deno.open(p.path)
     for await (const line of readLines(fileReader)) {
       if (line.startsWith('#')) continue
@@ -34,22 +35,31 @@ async function getIgnorePatterns() {
   return patterns
 }
 
-// when we compile, the plugs dir won't be present
-const BUILTIN = [
-  './plugs/builtin/validate/validate-sub.js',
-  './plugs/builtin/validate/validate-event.js',
-  './plugs/builtin/limits/limits.js',
-  './plugs/builtin/stats/stats.js',
-]
+// when we compile, the plugs dir won't be present, so specify them statically
+function getBuiltins() {
+  const use = CONFIG.plugs.builtin.use
+  const builtins = []
+  if (use.includes('validate')) {
+    builtins.push('./plugs/builtin/validate/validate-sub.js')
+    builtins.push('./plugs/builtin/validate/validate-event.js')
+  }
+  if (use.includes('limits')) {
+    builtins.push('./plugs/builtin/limits/limits.js')
+  }
+  if (use.includes('stats')) {
+    builtins.push('./plugs/builtin/stats/stats.js')
+  }
+  return new Set(builtins.map((p) => new URL(p, import.meta.url).href))
+}
 
 export async function plugsInit() {
-  const builtins = new Set(BUILTIN.map((p) => new URL(p, import.meta.url).href))
+  const builtins = getBuiltins()
 
   try {
     const ignorePatterns = await getIgnorePatterns()
 
     for await (
-      const p of walk('./plugs/', {
+      const p of walk(CONFIG.plugs.dir, {
         exts: ['.js', '.ts'],
         skip: ignorePatterns,
       })
@@ -61,7 +71,6 @@ export async function plugsInit() {
         name: basename(p.path, '.js') || basename(p.path, '.ts'),
       })
       await plugIn(worker, p.path)
-      builtins.delete(href)
     }
   } catch (e) {
     if (

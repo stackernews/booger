@@ -1,6 +1,7 @@
 import { parse as jsoncParse } from 'std/jsonc/mod.ts'
 import { parse as flagsParse } from 'std/flags/mod.ts'
 import { loadSync } from 'std/dotenv/mod.ts'
+import { deepMerge } from 'std/collections/deep_merge.ts'
 
 export const CONFIG = `// default configuration file for booger
 // booger will look for this file in the directory it is run from
@@ -15,12 +16,6 @@ export const CONFIG = `// default configuration file for booger
 
   // postgres url for nostr data (precedence cli > env(DB) > config file)
   "db": "postgres://127.0.0.1:5432/booger",
-
-  // postgres url for stats booger plug (precedence cli > env(DB_STATS) > config file)
-  "dbStats": "postgres://127.0.0.1:5432/booger_stats",
-
-  // postgres url for limits booger plug (precedence cli > env(DB_LIMITS) > config file)
-  "dbLimits": "postgres://127.0.0.1:5432/booger_limits",
 
   // exactly how booger will respond to nip-11 requests
   "nip11": {
@@ -49,17 +44,21 @@ export const CONFIG = `// default configuration file for booger
 
   // configuration related to booger plugs
   "plugs": {
+
+    // directory to load plugs from
+    "dir" : "./plugs",
+
+    // the builtin plugs that booger will use
     "builtin" : {
 
       // the default builtin plugs that booger will use
-      // omit any or all if you don't want them
-      "use": [
+      // omit any or all (empty array) if you don't want to use them
+      "use" : [
         "validate",
-        "limits",
-        "stats"
-      ],
+        "stats",
+        "limits"],
 
-      // default configuration for the validate plug
+      // configuration for the validate plug
       "validate": {
 
         // min prefix length for ids and authors
@@ -105,8 +104,16 @@ export const CONFIG = `// default configuration file for booger
         "maxLimit": 5000
       },
 
-      // default configuration for the limits plug
+      // configuration for the stats plug
+      "stats": {
+        // postgres url for stats booger plug (precedence cli > env(DB_STATS) > config file)
+        "db" : "postgres://127.0.0.1:5432/booger_stats"
+      },
+
+      // configuration for the limits plug
       "limits": {
+          // postgres url for limits booger plug (precedence cli > env(DB_LIMITS) > config file)
+          "db" : "postgres://127.0.0.1:5432/booger_limits",
 
           // max events per interval with option to prevent duplicates
           // in the same interval
@@ -144,11 +151,12 @@ const args = flagsParse(Deno.args, {
     'db-stats',
     'db-limits',
     'dotenv',
+    'plugs-dir',
+    'plugs-builtin-use',
   ],
   boolean: ['init', 'help', 'version'],
   alias: {
     c: 'config',
-    conf: 'config',
     p: 'port',
     b: 'bind',
     d: 'db',
@@ -181,7 +189,7 @@ Usage:
 Options:
   -i, --init
           write default config to ./booger.jsonc
-  -c, --conf, --config <path>
+  -c, --config <path>
           path to booger config file (default: ./booger.jsonc)
   -b, --bind <ip or hostname>
           interface to listen on (default: ${config.bind})
@@ -191,11 +199,17 @@ Options:
   -d, --db <postgres url>
           postgres url for nostr data (default: ${config.db})
   -s, --db-stats <postgres url>
-          postgres url for stats booger data (default: ${config.dbStats})
+          postgres url for stats booger data (default: ${config.plugs.builtin.stats.db})
   -l, --db-limits <postgres url>
-          postgres url for limits booger data (default: ${config.dbLimits})
+          postgres url for limits booger data (default: ${config.plugs.builtin.limits.db})
   -e, --dotenv <path>
           path to .env file (default: none)
+  --plugs-dir <path>
+          path to plugs directory (default: ${config.plugs.dir})
+  --plugs-builtin-use <plugs>
+          comma seperated list of builtin plugs to use (default: ${
+    config.plugs.builtin.use.join(',')
+  })
   -h, --help
           print help
   -v, --version
@@ -219,15 +233,15 @@ if (args.init) {
   Deno.writeFileSync('./booger.jsonc', new TextEncoder().encode(CONFIG), {
     createNew: true,
   })
-  console.log(`default written to ./booger.jsonc`)
+  console.log(`booger's default config file was written to ./booger.jsonc`)
   Deno.exit(0)
 }
 
 // get any user defined config files
-let userConfig = {}
+let fileConfig = {}
 if (args.config) {
   try {
-    userConfig = jsoncParse(
+    fileConfig = jsoncParse(
       new TextDecoder('utf-8').decode(Deno.readFileSync(args.config)),
     )
   } catch (e) {
@@ -238,7 +252,7 @@ if (args.config) {
   }
 } else {
   try {
-    userConfig = jsoncParse(
+    fileConfig = jsoncParse(
       new TextDecoder('utf-8').decode(Deno.readFileSync('./booger.jsonc')),
     )
   } catch (e) {
@@ -247,6 +261,28 @@ if (args.config) {
     }
   }
 }
+
+// remove undefined values from configs before merging
+// this is a slow hack but its simple
+const delUndefined = (obj) => JSON.parse(JSON.stringify(obj))
+
+const cliConfig = delUndefined({
+  port: args.port,
+  bind: args.bind,
+  db: args['db'],
+  plugs: {
+    dir: args['plugs'],
+    builtin: {
+      use: args['plugs-builtin-use']?.split(','),
+      stats: {
+        db: args['db-stats'],
+      },
+      limits: {
+        db: args['db-limits'],
+      },
+    },
+  },
+})
 
 if (args.dotenv) {
   loadSync({
@@ -262,16 +298,27 @@ if (args.dotenv) {
   })
 }
 
-const cliConfig = {
-  port: args.port || Deno.env.get('PORT') || undefined,
-  bind: args.bind || Deno.env.get('BIND') || undefined,
-  db: args['db'] || Deno.env.get('DB') || undefined,
-  dbStats: args['db-stats'] || Deno.env.get('DB_STATS') || undefined,
-  dbLimits: args['db-limits'] || Deno.env.get('DB_LIMITS') ||
-    undefined,
-}
-Object.keys(cliConfig).forEach((key) =>
-  cliConfig[key] === undefined ? delete cliConfig[key] : {}
-)
+const envConfig = delUndefined({
+  port: Deno.env.get('PORT'),
+  bind: Deno.env.get('BIND'),
+  db: Deno.env.get('DB'),
+  plugs: {
+    builtin: {
+      stats: {
+        db: Deno.env.get('DB_STATS'),
+      },
+      limits: {
+        db: Deno.env.get('DB_LIMITS'),
+      },
+    },
+  },
+})
 
-export default { ...config, ...userConfig, ...cliConfig }
+export default [fileConfig, envConfig, cliConfig].reduce(
+  (acc, cur) =>
+    deepMerge(acc, cur, {
+      arrays: 'replace',
+      maps: 'merge',
+    }),
+  config,
+)

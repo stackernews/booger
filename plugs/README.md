@@ -221,9 +221,9 @@ The following plugs are bundled into booger implicitly.
 3. [limits](/plugs/builtin/limits/limits.js) provides some basic rate limiting
 
 When running booger executables you can prevent these plugs from being used by
-removing them from `./booger.jsonc`.
+removing them from `./booger.jsonc` or with the `--plugs-builtin-use` flag.
 
-You can configure these plugs from `./booger.jsonc`.
+You can configure the builtin plugs you use in `./booger.jsonc`.
 
 # ignoring files in `/plugs`
 
