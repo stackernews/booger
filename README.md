@@ -63,6 +63,8 @@ simplicity, ease of use, extensibility, scalability, performance, security
 
 # how to run (locally)
 
+_Note: steps 1, 2, and 3 won't be necessary once we start issuing releases_
+
 0. [install postgres](https://www.postgresql.org/download/) and run it (welcome
    to app programming)
 1. insall deno 1.34.2 or later (welcome to deno)
@@ -71,8 +73,7 @@ simplicity, ease of use, extensibility, scalability, performance, security
    - 🚨
      [earlier versions of deno might not play well with booger](https://github.com/denoland/deno/issues/17283)
    - [read more about deno on deno.land](https://deno.land/)
-2. clone booger (this step & step 3 won't be necessary when we start issuing
-   releases)
+2. clone booger
    - `git clone git@github.com:stackernews/booger.git && cd booger`
    - or `git clone https://github.com/stackernews/booger.git && cd booger`
 3. run `deno task compile` to generate an executable booger 🥸
