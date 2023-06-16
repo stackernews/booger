@@ -23,7 +23,8 @@
     // sub-release adds $DENO_TARGET for all the target platforms and runs sub-sub-release
     "sub-release": "DENO_TARGET=x86_64-unknown-linux-gnu deno task sub-sub-release && DENO_TARGET=x86_64-pc-windows-msvc deno task sub-sub-release && DENO_TARGET=x86_64-apple-darwin deno task sub-sub-release && DENO_TARGET=aarch64-apple-darwin deno task sub-sub-release",
     // sub-sub-release adds $DENO_EXT using both $DENO_TARGET and $DENO_REL (specifies the target and output directory) then runs sub-compile
-    "sub-sub-release": "DENO_EXT=\"--target=$DENO_TARGET -o ./release/$DENO_REL/$DENO_TARGET/booger\" deno task sub-compile"
+    // after compiling, it zips the binary using $BOOGER_VER provided to the original task
+    "sub-sub-release": "DENO_EXT=\"--target=$DENO_TARGET -o ./release/$DENO_REL/$DENO_TARGET/booger\" deno task sub-compile && sh -c \"chmod +x ./release/$DENO_REL/$DENO_TARGET/booger*\" && sh -c \"zip -j ./release/booger-$BOOGER_VER-$DENO_REL-$DENO_TARGET.zip ./release/$DENO_REL/$DENO_TARGET/booger*\""
   },
   "imports": {
     "std/": "https://deno.land/std@0.191.0/",
