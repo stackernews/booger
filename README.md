@@ -17,9 +17,9 @@ it in prod more myself)
 - plugin-able: connections, disconnections, subs, sub closes, events, eoses,
   notices, and errors
   - [read more about booger plugs](/plugs/README.md)
-- compiles into a single secure executable
-  - each release will contain executables with different permissions enforced by
-    the runtime:
+- compiles into a single, secure executable
+  - releases contain executables with different permissions enforced by the
+    runtime:
     1. normal - an executable that runs like most things you run on your
        computer
     2. secure - a runtime-restricted executable
@@ -62,9 +62,14 @@ simplicity, ease of use, extensibility, scalability, performance, security
 
 ![booger process](https://user-images.githubusercontent.com/34140557/220431187-9ef249c2-30ba-45ab-a68c-1660b1f92ddc.png)
 
-# how to run (locally)
+# how to run (locally from a release executable)
 
-_Note: steps 1, 2, and 3 won't be necessary once we start issuing releases_
+0. [install postgres](https://www.postgresql.org/download/) and run it (welcome
+   to app programming)
+1. [download the latest booger release](/releases/latest) and unzip it
+2. run `./booger` and your nostr relay is listening on `127.0.0.1:8006`
+
+# how to run (locally from source)
 
 0. [install postgres](https://www.postgresql.org/download/) and run it (welcome
    to app programming)
@@ -74,10 +79,12 @@ _Note: steps 1, 2, and 3 won't be necessary once we start issuing releases_
    - 🚨
      [earlier versions of deno might not play well with booger](https://github.com/denoland/deno/issues/17283)
    - [read more about deno on deno.land](https://deno.land/)
-2. clone booger
-   - `git clone git@github.com:stackernews/booger.git && cd booger`
-   - or `git clone https://github.com/stackernews/booger.git && cd booger`
-3. run `deno task compile` to generate an executable booger 🥸
+2. get booger's source
+   - `git clone git@github.com:stackernews/booger.git`
+   - or `git clone https://github.com/stackernews/booger.git`
+   - or
+     [download the source archive from the latest booger release](/releases/latest)
+3. from booger's dir run `deno task compile` to generate an executable booger 🥸
    - to produce a secure executable run `deno task compile-secure` instead
 4. run `./booger` and your nostr relay is listening on `127.0.0.1:8006`
 
