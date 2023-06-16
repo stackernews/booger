@@ -14,19 +14,20 @@ it in prod more myself)
 
 - supports many NIPs: 1, 2, 4, 9, 11, 12, 15, 16, 20, 26, 28, 33, 40
 - suitable for horizontally scaling websocket layer with a load balancer
-- pluggable: connections, disconnections, subs, sub closes, events, eoses,
+- plugin-able: connections, disconnections, subs, sub closes, events, eoses,
   notices, and errors
   - [read more about booger plugs](/plugs/README.md)
-- compiles into a single, secure executable
-  - each release will probably contain executables with different permissions:
-    1. normal - the same crazy unrestricted permissions you run most things on
-       your computer with
-    2. hardened - a very restricted executable
-       - only communicates on loopback
-       - only able access relevant environment variables
-       - only able to write to `./booger.jsonc`
-       - only able to read from `./booger.jsonc` and `./plugs/`
-       - [read more about booger's runtime security on deno.land](https://deno.com/manual@v1.34.2/basics/permissions)
+- compiles into a single secure executable
+  - each release will contain executables with different permissions enforced by
+    the runtime:
+    1. normal - an executable that runs like most things you run on your
+       computer
+    2. secure - a runtime-restricted executable
+       - booger can only communicate on loopback
+       - booger can only access relevant environment variables
+       - booger can only write to `./booger.jsonc`
+       - booger can only read from `./booger.jsonc` and `./plugs/`
+       - [read more about booger's runtime restrictions on deno.land](https://deno.com/manual@v1.34.2/basics/permissions)
 - rate limits (very basic ones atm)
 - collects stats on connections and subscriptions (for analysis or whatevs)
 
@@ -77,7 +78,7 @@ _Note: steps 1, 2, and 3 won't be necessary once we start issuing releases_
    - `git clone git@github.com:stackernews/booger.git && cd booger`
    - or `git clone https://github.com/stackernews/booger.git && cd booger`
 3. run `deno task compile` to generate an executable booger 🥸
-   - to produce a hardened executable run `deno task compile-harden` instead
+   - to produce a secure executable run `deno task compile-secure` instead
 4. run `./booger` and your nostr relay is listening on `127.0.0.1:8006`
 
 # how to configure
@@ -161,7 +162,7 @@ booger plugs.
 
 # how to compile with different permissions
 
-If you try to access things that a hardened booger executable isn't permitted to
+If you try to access things that a secure booger executable isn't permitted to
 access (like a remote postgres or a `booger.jsonc` not in pwd), deno's runtime
 will prompt you to access them. If you'd like to avoid deno's prompts, you'll
 need to compile booger with different permissions.
