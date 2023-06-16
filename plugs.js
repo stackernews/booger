@@ -87,13 +87,13 @@ export async function plugsInit() {
       name: basename(builtin, '.js') ||
         basename(builtin, '.ts'),
     })
-    await plugIn(worker, builtin)
+    await plugIn(worker, 'builtin ' + basename(builtin, '.js'))
   }
 }
 
 async function plugIn(worker, name) {
   return await new Promise((resolve, reject) => {
-    console.log(`plug registering ${name}`)
+    console.log(`plug registering ${name}...`)
 
     setTimeout(() =>
       reject(
