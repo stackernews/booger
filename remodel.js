@@ -71,7 +71,7 @@ export default async function remodel(pg, { migrations, table }) {
         await pg`INSERT INTO ${pg.unsafe(table)} (name, hash)
           VALUES (${name}, ${hash})`
       })
-      console.log(`remodel: applied ${name}...`)
+      console.log(`remodel: applied ${name}`)
     }
   } catch (e) {
     console.error(`remodel: error while using lock: ${e.message}`)

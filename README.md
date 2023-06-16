@@ -28,7 +28,7 @@ it in prod more myself)
        - only able to read from `./booger.jsonc` and `./plugs/`
        - [read more about booger's runtime security on deno.land](https://deno.com/manual@v1.34.2/basics/permissions)
 - rate limits (very basic ones atm)
-- collects stats on connections and subscriptions (for analysis)
+- collects stats on connections and subscriptions (for analysis or whatevs)
 
 # what booger doesn't do (yet)
 

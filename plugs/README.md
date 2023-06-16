@@ -35,7 +35,8 @@ There are a handful of things a booger operator might want to plugin to:
 
 You can plugin to these actions by adding one or more
 [Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API)
-to the `./plugs` directory.
+to the `./plugs` directory
+([this directory is configurable](/README.md#how-to-configure)).
 
 On startup, booger will recursively walk `./plugs` looking for `.js` and `.ts`
 files. It will load and then send workers a `'getactions'` string message.
@@ -220,10 +221,10 @@ The following plugs are bundled into booger implicitly.
    statistics
 3. [limits](/plugs/builtin/limits/limits.js) provides some basic rate limiting
 
-When running booger executables you can prevent these plugs from being used by
-removing them from `./booger.jsonc` or with the `--plugs-builtin-use` flag.
+When running booger you can prevent these plugs from being used by removing them
+from `./booger.jsonc` or with the `--plugs-builtin-use` flag.
 
-You can configure the builtin plugs you use in `./booger.jsonc`.
+You can configure the behavior of the builtin plugs you use in `./booger.jsonc`.
 
 # ignoring files in `/plugs`
 

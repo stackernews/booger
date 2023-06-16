@@ -3,8 +3,7 @@ import { schnorr } from 'secp'
 import { crypto, toHashString } from 'std/crypto/mod.ts'
 import CONFIG from '../../../conf.js'
 
-const VALIDATE = CONFIG?.plugs?.builtin?.validate
-if (!VALIDATE) throw new Error('missing config for validate plug')
+const VALIDATE = CONFIG.plugs.builtin.validate
 
 export const zPrefix = z.string().regex(
   new RegExp(`^[a-f0-9]{${VALIDATE.minPrefixLength},64}$`),

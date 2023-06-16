@@ -15,6 +15,7 @@ export const CONFIG = `// default configuration file for booger
   "bind": "127.0.0.1",
 
   // postgres url for nostr data (precedence cli > env(DB) > config file)
+  // if this db does not exist, booger will try to create it for you
   "db": "postgres://127.0.0.1:5432/booger",
 
   // exactly how booger will respond to nip-11 requests
@@ -107,12 +108,14 @@ export const CONFIG = `// default configuration file for booger
       // configuration for the stats plug
       "stats": {
         // postgres url for stats booger plug (precedence cli > env(DB_STATS) > config file)
+        // if this db does not exist, booger will try to create it for you
         "db" : "postgres://127.0.0.1:5432/booger_stats"
       },
 
       // configuration for the limits plug
       "limits": {
           // postgres url for limits booger plug (precedence cli > env(DB_LIMITS) > config file)
+          // if this db does not exist, booger will try to create it for you
           "db" : "postgres://127.0.0.1:5432/booger_limits",
 
           // max events per interval with option to prevent duplicates
@@ -125,7 +128,7 @@ export const CONFIG = `// default configuration file for booger
             // max events per interval
             "count": 100,
 
-            // allowable duplicate length in interval (null to disable)
+            // min allowable duplicate length in interval (null to disable duplicate checks)
             "duplicateContentIgnoreLen": null
           },
 
