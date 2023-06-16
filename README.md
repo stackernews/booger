@@ -66,7 +66,7 @@ simplicity, ease of use, extensibility, scalability, performance, security
 
 0. [install postgres](https://www.postgresql.org/download/) and run it (welcome
    to app programming)
-1. [download the latest booger release](/releases/latest) and unzip it
+1. [download the latest booger release](https://github.com/stackernews/booger/releases/latest) and unzip it
 2. run `./booger` and your nostr relay is listening on `127.0.0.1:8006`
 
 # how to run (locally from source)
@@ -83,7 +83,7 @@ simplicity, ease of use, extensibility, scalability, performance, security
    - `git clone git@github.com:stackernews/booger.git`
    - or `git clone https://github.com/stackernews/booger.git`
    - or
-     [download the source archive from the latest booger release](/releases/latest)
+     [download the source archive from the latest booger release](https://github.com/stackernews/booger/releases/latest)
 3. from booger's dir run `deno task compile` to generate an executable booger 🥸
    - to produce a secure executable run `deno task compile-secure` instead
 4. run `./booger` and your nostr relay is listening on `127.0.0.1:8006`
