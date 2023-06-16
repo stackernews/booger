@@ -84,7 +84,8 @@ Deno.serve({
     plugsAction('disconnect', ws.booger).catch(console.error)
     forEachSubId(
       ws.booger.id,
-      (subId) => plugsAction('unsub', ws.booger, { subId }),
+      (subId) =>
+        plugsAction('unsub', ws.booger, { subId }).catch(console.error),
     )
     delSocket(ws)
   }
