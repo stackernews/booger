@@ -7,19 +7,16 @@ self.onmessage = async ({ data }) => {
     return
   }
 
+  const { msgId, data: { subId, filters } } = data
   try {
-    if (data.action === 'sub') {
-      await zSub.parseAsync(data.data.subId)
-      await zFilters.parseAsync(data.data.filters)
-    }
+    await zSub.parseAsync(subId)
+    await zFilters.parseAsync(filters)
+    self.postMessage({ msgId, accept: true })
   } catch (e) {
     let reason = e.message
     if (e instanceof z.ZodError) {
       reason = zErrorToString(e)
     }
-    self.postMessage({ accept: false, reason })
-    return
+    self.postMessage({ msgId, accept: false, reason })
   }
-
-  self.postMessage({ accept: true })
 }

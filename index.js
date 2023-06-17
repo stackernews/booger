@@ -31,7 +31,7 @@ Deno.serve({
   port: CONFIG.port,
   hostname: CONFIG.bind,
   reusePort: true,
-}, (req) => {
+}, async (req) => {
   if (req.headers.get('upgrade')?.toLowerCase() !== 'websocket') {
     const headers = {
       'Access-Control-Allow-Origin': '*',
@@ -40,20 +40,24 @@ Deno.serve({
     }
     // nip 11
     if (req.headers.get('accept') === 'application/nostr+json') {
-      return Response.json(conf.nip11, { status: 200, headers })
+      return Response.json(CONFIG.nip11, { status: 200, headers })
     }
     return new Response(null, { status: 404, headers })
   }
 
+  const id = crypto.randomUUID()
+  const headers = Object.fromEntries(req.headers.entries())
+  try {
+    await plugsAction('connect', { id, headers })
+  } catch (e) {
+    return new Response(e.message, { status: 403 })
+  }
+
   const { socket: ws, response: res } = Deno.upgradeWebSocket(req)
-  ws.onopen = async () => {
+  ws.booger = { id, headers }
+  ws.onopen = () => {
     try {
-      ws.booger = {
-        id: crypto.randomUUID(),
-        headers: Object.fromEntries(req.headers.entries()),
-      }
       addSocket(ws)
-      await plugsAction('connect', ws.booger)
     } catch (e) {
       sendNotice(ws, e.message)
       delSocket(ws)
@@ -138,6 +142,9 @@ function delSocket(ws) {
 }
 
 function handleError(ws, error) {
+  // if socket closed, assume that's the source of the error
+  if (ws.readyState !== 1) return
+
   console.error(error)
   plugsAction('error', ws.booger, {
     error: {
@@ -152,6 +159,9 @@ function handleError(ws, error) {
 }
 
 function sendNotice(ws, notice) {
+  // if socket closed, assume that's the source of the error
+  if (ws.readyState !== 1) return
+
   console.info('notice', notice)
   plugsAction('notice', ws.booger, { notice })
     .catch(console.error)

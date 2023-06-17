@@ -28,11 +28,11 @@ self.onmessage = async ({ data }) => {
     return
   }
 
-  const { action, conn, data: dat } = data
+  const { msgId, action, conn, data: dat } = data
   try {
     switch (action) {
       case 'connect':
-        self.postMessage({ accept: true })
+        self.postMessage({ msgId, accept: true })
         await pg`INSERT INTO conns (id, headers) VALUES
           (${conn.id}, ${conn.headers})`
         break
@@ -40,7 +40,7 @@ self.onmessage = async ({ data }) => {
         await pg`UPDATE conns SET closed_at = NOW() AT TIME ZONE 'UTC' WHERE id = ${conn.id}`
         break
       case 'sub':
-        self.postMessage({ accept: true })
+        self.postMessage({ msgId, accept: true })
         await pg.begin((pg) => {
           const lines = []
 
@@ -105,6 +105,4 @@ self.onmessage = async ({ data }) => {
   } catch (e) {
     console.error(e)
   }
-
-  return
 }

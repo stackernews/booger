@@ -57,11 +57,12 @@ message from booger in the form:
 
 ```jsonc
 {
+   msgId: Number, // msgId to include in response if responding
+   action: String, // e.g. 'connect'
    conn: {
-      id: UUID // unique id to this connection
+      id: String // unique id to this connection
       headers: Object // http headers as a json object
    },
-   action: String, // e.g. 'connect'
    data: Object // depends on the action and are documented further down
 }
 ```
@@ -77,6 +78,7 @@ Responses from these actions must take the form:
 
 ```jsonc
 {
+   msgId: Number, // the msgId of the action message we're responding to
    accept: Boolean, // true to accept, false if booger should prevent
    reason: String // reason for rejection if accept is false, undefined otherwise
    // TODO: we'll probably add a replyRaw to send replies directly to clients
@@ -147,12 +149,17 @@ self.onmessage = ({ data }) => {
     return
   }
 
+  const { msgId } = data
   if (data.action === 'event' && data.data.event.kind === 6) {
-    self.postMessage({ accept: false, reason: 'blocked: kind 6 not allowed' })
+    self.postMessage({
+      msgId,
+      accept: false,
+      reason: 'blocked: kind 6 not allowed',
+    })
     return
   }
 
-  self.postMessage({ accept: true })
+  self.postMessage({ msgId, accept: true })
 }
 ```
 
@@ -165,20 +172,26 @@ self.onmessage = ({ data }) => {
     return
   }
 
+  const { msgId } = data
   if (data.action === 'event' && data.data.event.kind === 6) {
-    self.postMessage({ accept: false, reason: 'blocked: kind 6 not allowed' })
+    self.postMessage({
+      msgId,
+      accept: false,
+      reason: 'blocked: kind 6 not allowed',
+    })
     return
   }
 
   if (data.action === 'sub' && data.data.filters.length > 100) {
     self.postMessage({
+      msgId,
       accept: false,
       reason: 'blocked: >100 filters not allowed',
     })
     return
   }
 
-  self.postMessage({ accept: true })
+  self.postMessage({ msgId, accept: true })
 }
 ```
 
@@ -191,10 +204,10 @@ self.onmessage = ({ data }) => {
     self.postMessage(['sub', 'unsub'])
     return
   }
-
   if (data.action === 'sub') {
+    const { msgId } = data
     timers.set(data.data.subId, Date.now())
-    self.postMessage({ accept: true })
+    self.postMessage({ msgId, accept: true })
     return
   }
 

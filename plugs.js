@@ -70,7 +70,7 @@ export async function plugsInit() {
         type: 'module',
         name: basename(p.path, '.js') || basename(p.path, '.ts'),
       })
-      await plugIn(worker, p.path)
+      await plugInit(worker, p.path)
     }
   } catch (e) {
     if (
@@ -87,12 +87,44 @@ export async function plugsInit() {
       name: basename(builtin, '.js') ||
         basename(builtin, '.ts'),
     })
-    await plugIn(worker, 'builtin ' + basename(builtin, '.js'))
+    await plugInit(worker, 'builtin ' + basename(builtin, '.js'))
   }
 }
 
-async function plugIn(worker, name) {
-  return await new Promise((resolve, reject) => {
+// provide async req<->resp messaging to plugs
+// every message sent to a plug expecting a response gets a unique msgId
+// plugs include the msgId in their response
+const msgPromises = new Map() // msgId -> { resolve, reject }
+
+let msgIdSeq = 0
+function nextMsgId() {
+  msgIdSeq = msgIdSeq === Number.MAX_SAFE_INTEGER ? 0 : msgIdSeq + 1
+  return msgIdSeq
+}
+
+export async function plugsAction(action, conn, data) {
+  // if the action isn't something that can be rejected, resolve immediately
+  if (['eose', 'disconnect', 'error', 'notice', 'unsub'].includes(action)) {
+    plugs[action].forEach((worker) =>
+      worker.postMessage({ action, conn, data })
+    )
+    return
+  }
+
+  await Promise.all(
+    plugs[action].map((worker) =>
+      new Promise((resolve, reject) => {
+        const msgId = nextMsgId()
+        msgPromises.set(msgId, { resolve, reject })
+        worker.postMessage({ msgId, action, conn, data })
+      })
+    ),
+  )
+}
+
+async function plugInit(worker, name) {
+  // register the plug
+  await new Promise((resolve, reject) => {
     console.log(`plug registering ${name}...`)
 
     setTimeout(() =>
@@ -103,44 +135,34 @@ async function plugIn(worker, name) {
       ), 5000)
 
     worker.onmessage = ({ data }) => {
-      console.log(
-        `plug registered ${name} for actions: ${data.join(', ')}`,
-      )
       for (const action of data) {
-        if (!Object.keys(plugs).includes(action.toLowerCase())) {
-          console.error(
-            `plug ${name} registered for unknown action ${action}`,
-          )
+        if (Object.keys(plugs).includes(action.toLowerCase())) {
+          plugs[action.toLowerCase()].push(worker)
+        } else {
+          console.error(`plug ${name} registered for unknown action ${action}`)
           Deno.exit(1)
         }
-        plugs[action.toLowerCase()].push(worker)
       }
+      console.log(`plug registered ${name} for actions: ${data.join(', ')}`)
       resolve()
     }
     worker.onerror = reject
     worker.postMessage('getactions')
   })
-}
 
-export async function plugsAction(action, conn, data) {
-  const result = await Promise.allSettled(plugs[action].map((worker) => {
-    return new Promise((resolve, reject) => {
-      worker.onmessage = ({ data }) => {
-        if (!data.accept) {
-          reject(new Error(data.reason))
-        }
+  // listen for messages from the plug
+  worker.onmessage = ({ data }) => {
+    if (data.msgId && msgPromises.has(data.msgId)) {
+      const { resolve, reject } = msgPromises.get(data.msgId)
+      if (data.accept) {
         resolve()
+      } else {
+        reject(new Error(data.reason))
       }
-      worker.onerror = reject
-      worker.postMessage({ action, conn, data })
-      // if the action isn't something that can be rejected, resolve immediately
-      if (['eose', 'disconnect', 'error', 'notice', 'unsub'].includes(action)) {
-        resolve()
-      }
-    })
-  }))
-
-  result.forEach((r) => {
-    if (r.status === 'rejected') throw r.reason
-  })
+      msgPromises.delete(data.msgId)
+    } else {
+      console.log(`plug ${name} unexpectedly emitted data: ${data}`)
+    }
+  }
+  worker.onerror = console.error
 }

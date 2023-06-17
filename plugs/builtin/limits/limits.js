@@ -24,11 +24,12 @@ export async function pgInit() {
 self.onmessage = async ({ data }) => {
   if (data === 'getactions') {
     await pgInit()
+
     self.postMessage(['event', 'sub', 'unsub', 'connect', 'disconnect'])
     return
   }
 
-  const { action, conn, data: dat } = data
+  const { msgId, action, conn, data: dat } = data
   let res
   try {
     switch (action) {
@@ -43,8 +44,8 @@ self.onmessage = async ({ data }) => {
         if (res?.at(0)?.count >= LIMITS.maxConnections) {
           throw new Error('blocked: too many connections')
         }
-        self.postMessage({ accept: true })
-        return
+        self.postMessage({ msgId, accept: true })
+        break
       case 'sub':
         res = await pg`
           SELECT count(*) as sub_count, sum(filter_count) as filter_count
@@ -57,47 +58,48 @@ self.onmessage = async ({ data }) => {
           throw new Error('blocked: too many filters')
         }
 
-        self.postMessage({ accept: true })
+        self.postMessage({ msgId, accept: true })
 
         await pg`INSERT INTO subs (ip, conn_id, nostr_sub_id, filter_count) VALUES
           (${conn.ip}, ${conn.id}, ${dat.subId}, ${dat.filters.length})`
         break
-      case 'event': {
-        // delete content older than interval
-        // insert the new event if below the count and not a duplicate
-        const code = LIMITS.maxEvents.duplicateContentIgnoreLen &&
-            LIMITS.maxEvents.duplicateContentIgnoreLen <
-              dat.event.content?.length
-          ? hashCode(dat.event.content)
-          : null
+      case 'event':
+        {
+          // delete content older than interval
+          // insert the new event if below the count and not a duplicate
+          const code = LIMITS.maxEvents.duplicateContentIgnoreLen &&
+              LIMITS.maxEvents.duplicateContentIgnoreLen <
+                dat.event.content?.length
+            ? hashCode(dat.event.content)
+            : null
 
-        res = await pg`
+          res = await pg`
           SELECT count(*) as event_count,
             count(*) FILTER (WHERE content_hash_code = ${code}) as dup_count
           FROM events
           WHERE (conn_id = ${conn.id} OR ip IS NOT DISTINCT FROM ${conn.ip})
           AND created_at > (NOW() AT TIME ZONE 'UTC')
             - MAKE_INTERVAL(secs => ${LIMITS.maxEvents.interval})`
-        if (res[0].event_count >= LIMITS.maxEvents.count) {
-          throw new Error('blocked: too many events')
-        }
+          if (res[0].event_count >= LIMITS.maxEvents.count) {
+            throw new Error('blocked: too many events')
+          }
 
-        res = await pg.begin((pg) => [
-          pg`DELETE FROM events
+          res = await pg.begin((pg) => [
+            pg`DELETE FROM events
             WHERE created_at < (NOW() AT TIME ZONE 'UTC')
               - MAKE_INTERVAL(secs => ${LIMITS.maxEvents.interval})`,
-          pg`INSERT INTO events (ip, conn_id, content_hash_code, kind)
+            pg`INSERT INTO events (ip, conn_id, content_hash_code, kind)
             VALUES (${conn.ip}, ${conn.id}, ${code}, ${dat.event.kind})
             ON CONFLICT (content_hash_code) DO NOTHING
             RETURNING id`,
-        ])
-        if (!res?.at(1)?.length) {
-          throw new Error('blocked: duplicate content')
-        }
+          ])
+          if (!res?.at(1)?.length) {
+            throw new Error('blocked: duplicate content')
+          }
 
-        self.postMessage({ accept: true })
-        return
-      }
+          self.postMessage({ msgId, accept: true })
+        }
+        break
       case 'disconnect':
         // decrement the count accounting for the sentinel value
         // if count < 0, delete the connection
@@ -114,9 +116,6 @@ self.onmessage = async ({ data }) => {
     }
   } catch (e) {
     console.error(e)
-    self.postMessage({ accept: false, reason: e.message })
-    return
+    self.postMessage({ msgId, accept: false, reason: e.message })
   }
-
-  return
 }

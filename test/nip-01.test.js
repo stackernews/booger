@@ -22,10 +22,10 @@ describe('nip-01', () => {
     charlie = await createPersona()
   })
 
-  afterEach(async () => {
-    await disconnect(alice)
-    await disconnect(bob)
-    await disconnect(charlie)
+  afterEach(() => {
+    disconnect(alice)
+    disconnect(bob)
+    disconnect(charlie)
   })
 
   it('gets text note by id', async () => {
