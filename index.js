@@ -11,6 +11,20 @@ import {
 import { forEachEvent, listen, pgInit, storeNotify } from './pg.js'
 import { plugsAction, plugsInit } from './plugs.js'
 
+console.log(`\x1b[32m
+
+  ▄▄▄▄    ▒█████   ▒█████    ▄████ ▓█████  ██▀███
+  ▓█████▄ ▒██▒  ██▒▒██▒  ██▒ ██▒ ▀█▒▓█   ▀ ▓██ ▒ ██▒
+  ▒██▒ ▄██▒██░  ██▒▒██░  ██▒▒██░▄▄▄░▒███   ▓██ ░▄█ ▒      \x1b[0m booger ${CONFIG.version} \x1b[32m
+  ▒██░█▀  ▒██   ██░▒██   ██░░▓█  ██▓▒▓█  ▄ ▒██▀▀█▄        \x1b[0m deno ${Deno.version.deno} \x1b[32m
+  ░▓█  ▀█▓░ ████▓▒░░ ████▓▒░░▒▓███▀▒░▒████▒░██▓ ▒██▒
+  ░▒▓███▀▒░ ▒░▒░▒░ ░ ▒░▒░▒░  ░▒   ▒ ░░ ▒░ ░░ ▒▓ ░▒▓░      \x1b[0m port ${CONFIG.port} \x1b[32m
+  ▒░▒   ░   ░ ▒ ▒░   ░ ▒ ▒░   ░   ░  ░ ░  ░  ░▒ ░ ▒░      \x1b[0m pid ${Deno.pid} \x1b[32m
+   ░    ░ ░ ░ ░ ▒  ░ ░ ░ ▒  ░ ░   ░    ░     ░░   ░
+   ░          ░ ░      ░ ░        ░    ░  ░   ░
+        ░
+  \x1b[0m`)
+
 const sockets = new Map() // map[socket id][websocket]
 sqliteInit()
 await pgInit()

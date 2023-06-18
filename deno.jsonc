@@ -19,12 +19,12 @@
     // sub-run takes $DENO_EXT and $DENO_PERMS and runs deno run
     "sub-run": "deno run $DENO_EXT $DENO_PERMS --unstable index.js",
     // sub-compile takes $DENO_EXT and $DENO_PERMS and runs deno compile
-    "sub-compile": "deno compile $DENO_EXT $DENO_PERMS --unstable --include=./plugs/builtin/validate/validate-sub.js --include=./plugs/builtin/validate/validate-event.js --include=./plugs/builtin/limits/limits.js --include=./plugs/builtin/stats/stats.js ./index.js",
+    "sub-compile": "deno compile $DENO_EXT $DENO_PERMS --unstable --include=./plugs/builtin/validate/validate-sub.js --include=./plugs/builtin/validate/validate-event.js --include=./plugs/builtin/limits/limits.js --include=./plugs/builtin/stats/stats.js ./index.js -- --__compiled-version=$BOOGER_VER",
     // sub-release adds $DENO_TARGET for all the target platforms and runs sub-sub-release
     "sub-release": "DENO_TARGET=x86_64-unknown-linux-gnu deno task sub-sub-release && DENO_TARGET=x86_64-pc-windows-msvc deno task sub-sub-release && DENO_TARGET=x86_64-apple-darwin deno task sub-sub-release && DENO_TARGET=aarch64-apple-darwin deno task sub-sub-release",
     // sub-sub-release adds $DENO_EXT using both $DENO_TARGET and $DENO_REL (specifies the target and output directory) then runs sub-compile
     // after compiling, it zips the binary using $BOOGER_VER provided to the original task
-    "sub-sub-release": "DENO_EXT=\"--target=$DENO_TARGET -o ./release/$DENO_REL/$DENO_TARGET/booger\" deno task sub-compile && sh -c \"chmod +x ./release/$DENO_REL/$DENO_TARGET/booger*\" && sh -c \"zip -j ./release/booger-$BOOGER_VER-$DENO_REL-$DENO_TARGET.zip ./release/$DENO_REL/$DENO_TARGET/booger*\""
+    "sub-sub-release": "DENO_EXT=\"--target=$DENO_TARGET -o ./release/$DENO_REL/$DENO_TARGET/booger\" deno task sub-compile && sh -c \"chmod +x ./release/$DENO_REL/$DENO_TARGET/booger*\" && sh -c \"zip -j ./release/booger-v$BOOGER_VER-$DENO_REL-$DENO_TARGET.zip ./release/$DENO_REL/$DENO_TARGET/booger*\""
   },
   "imports": {
     "std/": "https://deno.land/std@0.191.0/",

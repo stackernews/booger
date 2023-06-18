@@ -66,7 +66,8 @@ simplicity, ease of use, extensibility, scalability, performance, security
 
 0. [install postgres](https://www.postgresql.org/download/) and run it (welcome
    to app programming)
-1. [download the latest booger release](https://github.com/stackernews/booger/releases/latest) and unzip it
+1. [download the latest booger release](https://github.com/stackernews/booger/releases/latest)
+   and unzip it
 2. run `./booger` and your nostr relay is listening on `127.0.0.1:8006`
 
 # how to run (locally from source)
@@ -119,7 +120,7 @@ Configuration values passed via cli take precedence over those in `env` and
 
 ```txt
 [keyan booger]🍏 ./booger --help
-booger - a nostr relay v0.0.0
+booger - a nostr relay
 
 Docs: https://github.com/stackernews/booger/blob/main/README.md
 Bugs: https://github.com/stackernews/booger/issues

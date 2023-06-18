@@ -24,7 +24,6 @@ export async function pgInit() {
 self.onmessage = async ({ data }) => {
   if (data === 'getactions') {
     await pgInit()
-
     self.postMessage(['event', 'sub', 'unsub', 'connect', 'disconnect'])
     return
   }

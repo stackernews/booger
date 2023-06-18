@@ -65,13 +65,17 @@ export default async function remodel(pg, { migrations, table }) {
 
     // apply them
     for (const [name, { migration, hash }] of migrations) {
-      console.log(`remodel: applying ${name}...`)
+      console.log(`db ${pg.options.database} applying migration ${name} ... `)
+
       await pg.begin(async (pg) => {
         await pg.unsafe(migration)
         await pg`INSERT INTO ${pg.unsafe(table)} (name, hash)
           VALUES (${name}, ${hash})`
       })
-      console.log(`remodel: applied ${name}`)
+
+      console.log(
+        `\x1b[A\x1b[Kdb ${pg.options.database} applying migration ${name} ... applied`,
+      )
     }
   } catch (e) {
     console.error(`remodel: error while using lock: ${e.message}`)

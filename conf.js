@@ -3,7 +3,43 @@ import { parse as flagsParse } from 'std/flags/mod.ts'
 import { loadSync } from 'std/dotenv/mod.ts'
 import { deepMerge } from 'std/collections/deep_merge.ts'
 
-export const CONFIG = `// default configuration file for booger
+const args = flagsParse(Deno.args, {
+  string: [
+    'config',
+    'port',
+    'bind',
+    'db',
+    'db-stats',
+    'db-limits',
+    'dotenv',
+    'plugs-dir',
+    'plugs-builtin-use',
+    '__compiled-version',
+  ],
+  boolean: ['init', 'help', 'version'],
+  alias: {
+    c: 'config',
+    p: 'port',
+    b: 'bind',
+    d: 'db',
+    s: 'db-stats',
+    l: 'db-limits',
+    e: 'dotenv',
+    i: 'init',
+    v: 'version',
+    h: 'help',
+  },
+  unknown: (arg) => {
+    console.log(`error: unexpected argument '${arg}'`)
+    console.log()
+    console.log(`For more information, try '--help'.`)
+    Deno.exit(1)
+  },
+})
+
+const VERSION = args['__compiled-version'] ?? 'X.X.X'
+
+const CONFIG = `// default configuration file for booger
 // booger will look for this file in the directory it is run from
 // or you can specify a path with the --config flag
 // you can always generate a default config file with the --init flag
@@ -40,7 +76,7 @@ export const CONFIG = `// default configuration file for booger
       40
     ],
     "Software": "https://github.com/stackernews/booger",
-    "Version": "v0.0.0"
+    "Version": "${VERSION}"
   },
 
   // configuration related to booger plugs
@@ -145,43 +181,10 @@ export const CONFIG = `// default configuration file for booger
   }
 }`
 
-const args = flagsParse(Deno.args, {
-  string: [
-    'config',
-    'port',
-    'bind',
-    'db',
-    'db-stats',
-    'db-limits',
-    'dotenv',
-    'plugs-dir',
-    'plugs-builtin-use',
-  ],
-  boolean: ['init', 'help', 'version'],
-  alias: {
-    c: 'config',
-    p: 'port',
-    b: 'bind',
-    d: 'db',
-    s: 'db-stats',
-    l: 'db-limits',
-    e: 'dotenv',
-    i: 'init',
-    v: 'version',
-    h: 'help',
-  },
-  unknown: (arg) => {
-    console.log(`error: unexpected argument '${arg}'`)
-    console.log()
-    console.log(`For more information, try '--help'.`)
-    Deno.exit(1)
-  },
-})
-
 const config = jsoncParse(CONFIG)
 
 if (args.help) {
-  const HELP = `booger - a nostr relay v0.0.0
+  const HELP = `booger - a nostr relay ${VERSION}
 
 Docs: https://github.com/stackernews/booger/blob/main/README.md
 Bugs: https://github.com/stackernews/booger/issues
@@ -224,7 +227,7 @@ Options:
 }
 
 if (args.version) {
-  console.log(`booger v0.0.0`)
+  console.log(`booger ${VERSION}`)
   console.log(
     `deno ${Deno.version.deno} (${Deno.build.arch}-${Deno.build.vendor}-${Deno.build.os})`,
   )
@@ -302,6 +305,7 @@ if (args.dotenv) {
 }
 
 const envConfig = delUndefined({
+  version: VERSION,
   port: Deno.env.get('PORT'),
   bind: Deno.env.get('BIND'),
   db: Deno.env.get('DB'),

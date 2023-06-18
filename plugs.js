@@ -87,7 +87,7 @@ export async function plugsInit() {
       name: basename(builtin, '.js') ||
         basename(builtin, '.ts'),
     })
-    await plugInit(worker, 'builtin ' + basename(builtin, '.js'))
+    await plugInit(worker, basename(builtin, '.js') + ' (builtin)')
   }
 }
 
@@ -125,12 +125,10 @@ export async function plugsAction(action, conn, data) {
 async function plugInit(worker, name) {
   // register the plug
   await new Promise((resolve, reject) => {
-    console.log(`plug registering ${name}...`)
-
     setTimeout(() =>
       reject(
         new Error(
-          `${name} did not respond to 'getactions' within 5s. Is it a web worker?`,
+          `plug ${name} did not respond to 'getactions' within 5s. Is it a web worker?`,
         ),
       ), 5000)
 
@@ -143,7 +141,7 @@ async function plugInit(worker, name) {
           Deno.exit(1)
         }
       }
-      console.log(`plug registered ${name} for actions: ${data.join(', ')}`)
+      console.log(`plug ${name} registered for actions: ${data.join(', ')}`)
       resolve()
     }
     worker.onerror = reject
