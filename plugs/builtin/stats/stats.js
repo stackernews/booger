@@ -57,7 +57,7 @@ self.onmessage = async ({ data }) => {
             lines.push(pg`INSERT INTO filters (sub_id, since, until, lmt)
               VALUES (currval('subs_id_seq'), ${since}, ${until}, ${limit})`)
             for (const id of ids) {
-              lines.push(pg.query`INSERT INTO ids (filter_id, event_id)
+              lines.push(pg`INSERT INTO event_ids (filter_id, event_id)
                 VALUES (currval('filters_id_seq'), ${id})`)
             }
             for (const author of authors) {

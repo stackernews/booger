@@ -37,7 +37,6 @@ self.onmessage = async ({ data }) => {
           ON CONFLICT (id, ip) DO UPDATE
             SET count = LEAST(${LIMITS.maxConnections}, conns.count + 1)
           RETURNING id, ip, count`
-        console.log(conn.headers)
         if (res?.at(0)?.count >= LIMITS.maxConnections) {
           throw new Error('blocked: too many connections')
         }
