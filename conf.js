@@ -1,13 +1,10 @@
-import { parse as jsoncParse } from 'std/jsonc/mod.ts'
-import { parse as flagsParse } from 'std/flags/mod.ts'
-import { loadSync } from 'std/dotenv/mod.ts'
-import { deepMerge } from 'std/collections/deep_merge.ts'
+import { deepMerge, envLoadSync, flagsParse, jsoncParse } from './deps.ts'
 
 const args = flagsParse(Deno.args, {
   string: [
     'config',
     'port',
-    'bind',
+    'hostname',
     'db',
     'db-stats',
     'db-limits',
@@ -20,7 +17,7 @@ const args = flagsParse(Deno.args, {
   alias: {
     c: 'config',
     p: 'port',
-    b: 'bind',
+    b: 'hostname',
     d: 'db',
     s: 'db-stats',
     l: 'db-limits',
@@ -47,8 +44,8 @@ const CONFIG = `// default configuration file for booger
   // the port to listen on (precedence cli > env(PORT) > config file)
   "port": 8006,
 
-  // the ip or hostname to listen on (precedence cli > env(BIND) > config file)
-  "bind": "127.0.0.1",
+  // the ip or hostname to listen on (precedence cli > env(HOSTNAME) > config file)
+  "hostname": "127.0.0.1",
 
   // postgres url for nostr data (precedence cli > env(DB) > config file)
   // if this db does not exist, booger will try to create it for you
@@ -197,8 +194,8 @@ Options:
           write default config to ./booger.jsonc
   -c, --config <path>
           path to booger config file (default: ./booger.jsonc)
-  -b, --bind <ip or hostname>
-          interface to listen on (default: ${config.bind})
+  -b, --hostname <ip or hostname>
+          interface to listen on (default: ${config.hostname})
           0.0.0.0 for all interfaces
   -p, --port <port>
           port to listen on (default: ${config.port})
@@ -274,7 +271,7 @@ const delUndefined = (obj) => JSON.parse(JSON.stringify(obj))
 
 const cliConfig = delUndefined({
   port: args.port,
-  bind: args.bind,
+  hostname: args.hostname,
   db: args['db'],
   plugs: {
     dir: args['plugs'],
@@ -291,12 +288,12 @@ const cliConfig = delUndefined({
 })
 
 if (args.dotenv) {
-  loadSync({
+  envLoadSync({
     export: true,
     envPath: args.dotenv,
     restrictEnvAccessTo: [
       'PORT',
-      'BIND',
+      'HOSTNAME',
       'DB',
       'DB_STATS',
       'DB_LIMITS',
@@ -307,7 +304,7 @@ if (args.dotenv) {
 const envConfig = delUndefined({
   version: VERSION,
   port: Deno.env.get('PORT'),
-  bind: Deno.env.get('BIND'),
+  hostname: Deno.env.get('HOSTNAME'),
   db: Deno.env.get('DB'),
   plugs: {
     builtin: {

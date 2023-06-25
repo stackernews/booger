@@ -1,13 +1,12 @@
 import CONFIG from '../conf.js'
-import { toHashString } from 'std/crypto/mod.ts'
-import { schnorr } from 'secp'
-import { assertArrayIncludes, assertObjectMatch } from 'std/testing/asserts.ts'
+import { schnorr, toHashString } from '../deps.ts'
+import { assertArrayIncludes, assertObjectMatch } from './deps.ts'
 
 let eventCount = 0
 
 export function connect() {
   return new Promise((resolve, reject) => {
-    const ws = new WebSocket(`ws://${CONFIG.bind}:${CONFIG.port}`)
+    const ws = new WebSocket(`ws://${CONFIG.hostname}:${CONFIG.port}`)
     ws.addEventListener('open', () => {
       resolve(ws)
     })

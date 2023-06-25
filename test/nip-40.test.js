@@ -1,9 +1,12 @@
 import {
+  afterEach,
   assertArrayIncludes,
   assertEquals,
   assertRejects,
-} from 'std/testing/asserts.ts'
-import { afterEach, beforeEach, describe, it } from 'std/testing/bdd.ts'
+  beforeEach,
+  describe,
+  it,
+} from './deps.ts'
 import {
   assertSendSubReceive,
   createEvent,
@@ -25,9 +28,9 @@ describe('nip-40', () => {
     bob = await createPersona()
   })
 
-  afterEach(() => {
-    disconnect(alice)
-    disconnect(bob)
+  afterEach(async () => {
+    await disconnect(alice)
+    await disconnect(bob)
   })
 
   it('rejects expired events', async () => {

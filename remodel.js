@@ -1,6 +1,4 @@
-import { walk } from 'std/fs/walk.ts'
-import { basename } from 'std/path/mod.ts'
-import { crypto, toHashString } from 'std/crypto/mod.ts'
+import { basename, crypto, toHashString, walk } from './deps.ts'
 
 const LOCK_ID = -800635800635800635n
 

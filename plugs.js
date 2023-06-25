@@ -1,7 +1,4 @@
-import { walk } from 'std/fs/walk.ts'
-import { globToRegExp } from 'std/path/glob.ts'
-import { readLines } from 'std/io/read_lines.ts'
-import { basename, dirname } from 'std/path/mod.ts'
+import { basename, dirname, globToRegExp, readLines, walk } from './deps.ts'
 import './plugs/builtin/validate/validate-sub.js'
 import './plugs/builtin/validate/validate-event.js'
 import './plugs/builtin/limits/limits.js'

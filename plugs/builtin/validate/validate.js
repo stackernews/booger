@@ -1,6 +1,4 @@
-import { z } from 'zod'
-import { schnorr } from 'secp'
-import { crypto, toHashString } from 'std/crypto/mod.ts'
+import { crypto, schnorr, toHashString, z } from '../../../deps.ts'
 import CONFIG from '../../../conf.js'
 
 const VALIDATE = CONFIG.plugs.builtin.validate

@@ -104,7 +104,7 @@ corresponding values provided in `./booger.jsonc`
 
 | name        | booger.jsonc name       |
 | ----------- | ----------------------- |
-| `BIND`      | bind                    |
+| `HOSTNAME`  | hostname                |
 | `PORT`      | port                    |
 | `DB`        | db                      |
 | `DB_STATS`  | plugs.builtin.stats.db  |
@@ -133,7 +133,7 @@ Options:
           write default config to ./booger.jsonc
   -c, --config <path>
           path to booger config file (default: ./booger.jsonc)
-  -b, --bind <ip or hostname>
+  -b, --hostname <ip or hostname>
           interface to listen on (default: 127.0.0.1)
           0.0.0.0 for all interfaces
   -p, --port <port>

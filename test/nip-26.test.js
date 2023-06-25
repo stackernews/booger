@@ -1,5 +1,4 @@
-import { assertRejects } from 'std/testing/asserts.ts'
-import { afterEach, beforeEach, describe, it } from 'std/testing/bdd.ts'
+import { afterEach, assertRejects, beforeEach, describe, it } from './deps.ts'
 import {
   assertSendSubReceive,
   createEvent,
@@ -46,9 +45,9 @@ describe('nip-26', () => {
     bob = await createPersona()
   })
 
-  afterEach(() => {
-    disconnect(alice)
-    disconnect(bob)
+  afterEach(async () => {
+    await disconnect(alice)
+    await disconnect(bob)
   })
 
   it('delegates an event', async () => {

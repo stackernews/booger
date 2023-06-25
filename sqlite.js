@@ -1,8 +1,8 @@
-import { DB } from 'sqlite'
+import { sqlite } from './deps.ts'
 
 let db
 export function sqliteInit() {
-  db = new DB(':memory:')
+  db = new sqlite(':memory:')
   db.execute('PRAGMA foreign_keys = ON')
   db.execute(`
     CREATE TABLE socket (

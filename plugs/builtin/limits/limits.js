@@ -1,7 +1,6 @@
 import CONFIG from '../../../conf.js'
-import remodel from '../../../remodel.js'
-import { crennect } from '../../../pg.js'
 import migrations from './migrations/index.js'
+import { pgInit } from '../../../pg.js'
 
 const LIMITS = CONFIG.plugs?.builtin?.limits
 
@@ -13,22 +12,20 @@ function hashCode(s) {
 }
 
 let pg
-export async function pgInit() {
-  pg = await crennect(LIMITS.db)
-  await remodel(pg, {
-    migrations,
-    table: 'booger_limits_migrations',
-  })
-}
-
 self.onmessage = async ({ data }) => {
   if (data === 'getactions') {
-    await pgInit()
+    try {
+      pg = await pgInit(LIMITS.db, migrations)
+    } catch (e) {
+      console.error(e)
+      self.close()
+    }
     self.postMessage(['event', 'sub', 'unsub', 'connect', 'disconnect'])
     return
   }
 
   const { msgId, action, conn, data: dat } = data
+  const ip = conn.headers['x-forwarded-for']?.split(/\s*,\s*/)[0]
   let res
   try {
     switch (action) {
@@ -36,10 +33,11 @@ self.onmessage = async ({ data }) => {
         // insert a new connection, or update the count
         // we use the connection limit as a sentinel for blocking
         res = await pg`INSERT INTO conns (id, ip, headers)
-          VALUES (${conn.id}, ${conn.ip}, ${conn.headers})
+          VALUES (${conn.id}, ${ip}, ${conn.headers})
           ON CONFLICT (id, ip) DO UPDATE
             SET count = LEAST(${LIMITS.maxConnections}, conns.count + 1)
           RETURNING id, ip, count`
+        console.log(conn.headers)
         if (res?.at(0)?.count >= LIMITS.maxConnections) {
           throw new Error('blocked: too many connections')
         }
@@ -49,7 +47,7 @@ self.onmessage = async ({ data }) => {
         res = await pg`
           SELECT count(*) as sub_count, sum(filter_count) as filter_count
           FROM   subs
-          WHERE  conn_id = ${conn.id} OR ip IS NOT DISTINCT FROM ${conn.ip}`
+          WHERE  conn_id = ${conn.id} OR ip IS NOT DISTINCT FROM ${ip}`
         if (res[0].sub_count >= LIMITS.maxSubscriptions) {
           throw new Error('blocked: too many subscriptions')
         }
@@ -60,7 +58,7 @@ self.onmessage = async ({ data }) => {
         self.postMessage({ msgId, accept: true })
 
         await pg`INSERT INTO subs (ip, conn_id, nostr_sub_id, filter_count) VALUES
-          (${conn.ip}, ${conn.id}, ${dat.subId}, ${dat.filters.length})`
+          (${ip}, ${conn.id}, ${dat.subId}, ${dat.filters.length})`
         break
       case 'event':
         {
@@ -76,7 +74,7 @@ self.onmessage = async ({ data }) => {
           SELECT count(*) as event_count,
             count(*) FILTER (WHERE content_hash_code = ${code}) as dup_count
           FROM events
-          WHERE (conn_id = ${conn.id} OR ip IS NOT DISTINCT FROM ${conn.ip})
+          WHERE (conn_id = ${conn.id} OR ip IS NOT DISTINCT FROM ${ip})
           AND created_at > (NOW() AT TIME ZONE 'UTC')
             - MAKE_INTERVAL(secs => ${LIMITS.maxEvents.interval})`
           if (res[0].event_count >= LIMITS.maxEvents.count) {
@@ -88,7 +86,7 @@ self.onmessage = async ({ data }) => {
             WHERE created_at < (NOW() AT TIME ZONE 'UTC')
               - MAKE_INTERVAL(secs => ${LIMITS.maxEvents.interval})`,
             pg`INSERT INTO events (ip, conn_id, content_hash_code, kind)
-            VALUES (${conn.ip}, ${conn.id}, ${code}, ${dat.event.kind})
+            VALUES (${ip}, ${conn.id}, ${code}, ${dat.event.kind})
             ON CONFLICT (content_hash_code) DO NOTHING
             RETURNING id`,
           ])
@@ -105,7 +103,7 @@ self.onmessage = async ({ data }) => {
         await pg.begin((pg) => [
           pg`UPDATE conns
             SET count = LEAST(${LIMITS.maxConnections - 2}, count - 1)
-            WHERE id = ${conn.id} OR ip IS NOT DISTINCT FROM ${conn.ip}`,
+            WHERE id = ${conn.id} OR ip IS NOT DISTINCT FROM ${ip}`,
           pg`DELETE FROM conns WHERE count < 0`,
         ])
         break

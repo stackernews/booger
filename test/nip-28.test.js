@@ -1,5 +1,11 @@
-import { assertArrayIncludes, assertObjectMatch } from 'std/testing/asserts.ts'
-import { afterEach, beforeEach, describe, it } from 'std/testing/bdd.ts'
+import {
+  afterEach,
+  assertArrayIncludes,
+  assertObjectMatch,
+  beforeEach,
+  describe,
+  it,
+} from './deps.ts'
 import {
   assertSendSubReceive,
   createEvent,
@@ -18,9 +24,9 @@ describe('nip-28', () => {
     bob = await createPersona()
   })
 
-  afterEach(() => {
-    disconnect(alice)
-    disconnect(bob)
+  afterEach(async () => {
+    await disconnect(alice)
+    await disconnect(bob)
   })
 
   it('creates a channel', async () => {

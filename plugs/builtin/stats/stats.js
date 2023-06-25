@@ -1,20 +1,17 @@
 import CONFIG from '../../../conf.js'
-import { crennect } from '../../../pg.js'
-import remodel from '../../../remodel.js'
 import migrations from './migrations/index.js'
+import { pgInit } from '../../../pg.js'
 
 let pg
-export async function pgInit() {
-  pg = await crennect(CONFIG.plugs.builtin.stats.db)
-  await remodel(pg, {
-    migrations,
-    table: 'booger_stats_migrations',
-  })
-}
 
 self.onmessage = async ({ data }) => {
   if (data === 'getactions') {
-    await pgInit()
+    try {
+      pg = await pgInit(CONFIG.plugs.builtin.stats.db, migrations)
+    } catch (e) {
+      console.error(e)
+      self.close()
+    }
     self.postMessage([
       'connect',
       'disconnect',

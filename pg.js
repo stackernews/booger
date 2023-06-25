@@ -1,24 +1,25 @@
-import CONFIG from './conf.js'
-import postgres from 'postgres'
+import { postgres } from './deps.ts'
 import remodel from './remodel.js'
-import migrations from './migrations/index.js'
 
-let pg
+export async function pgInit(url, migrations) {
+  const pg = await crennect(url)
 
-export async function pgInit() {
-  self.addEventListener('unload', async () => await pg?.end())
-  pg = await crennect(CONFIG.db)
+  const dbname = new URL(url).pathname.slice(1)
   await remodel(pg, {
     migrations,
-    table: 'booger_migrations',
+    table: `${dbname}_migrations`,
   })
+
+  self.addEventListener('unload', async () => await pg?.end())
+
+  return pg
 }
 
-export async function listen(handleEvent) {
+export async function pgListen(pg, handleEvent) {
   await pg.listen('event', handleEvent)
 }
 
-export async function storeNotify(event) {
+export async function pgStoreNotify(pg, event) {
   const { id, pubkey, created_at: createdAt, kind, tags } = event
   // nip 16 ephemeral
   if (kind >= 20000 && kind < 30000) {
@@ -83,7 +84,7 @@ export async function storeNotify(event) {
   })
 }
 
-export async function forEachEvent(filters, cb) {
+export async function pgForEachEvent(pg, filters, cb) {
   for (
     const {
       ids,
@@ -138,7 +139,7 @@ function connect(url) {
   )
 }
 
-export async function crennect(url) {
+async function crennect(url) {
   try {
     const pgTry = connect(url)
     await pgTry`SELECT 1` // conn doesn't happen until first query

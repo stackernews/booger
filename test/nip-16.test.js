@@ -1,9 +1,12 @@
 import {
+  afterEach,
   assertArrayIncludes,
   assertEquals,
   assertObjectMatch,
-} from 'std/testing/asserts.ts'
-import { afterEach, beforeEach, describe, it } from 'std/testing/bdd.ts'
+  beforeEach,
+  describe,
+  it,
+} from './deps.ts'
 import {
   createEvent,
   createPersona,
@@ -23,9 +26,9 @@ describe('nip-16', () => {
     bob = await createPersona()
   })
 
-  afterEach(() => {
-    disconnect(alice)
-    disconnect(bob)
+  afterEach(async () => {
+    await disconnect(alice)
+    await disconnect(bob)
   })
 
   it('replaces an event', async () => {
