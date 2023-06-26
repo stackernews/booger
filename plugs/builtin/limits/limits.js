@@ -54,10 +54,18 @@ self.onmessage = async ({ data }) => {
           throw new Error('blocked: too many filters')
         }
 
-        self.postMessage({ msgId, accept: true })
+        try {
+          await pg`INSERT INTO subs (ip, conn_id, nostr_sub_id, filter_count) VALUES
+            (${ip}, ${conn.id}, ${dat.subId}, ${dat.filters.length})`
+        } catch (e) {
+          // unique_violation
+          if (e.code === '23505') {
+            throw new Error('blocked: subscription id already exists')
+          }
+          throw e
+        }
 
-        await pg`INSERT INTO subs (ip, conn_id, nostr_sub_id, filter_count) VALUES
-          (${ip}, ${conn.id}, ${dat.subId}, ${dat.filters.length})`
+        self.postMessage({ msgId, accept: true })
         break
       case 'event':
         {
