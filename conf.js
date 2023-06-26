@@ -53,11 +53,11 @@ const CONFIG = `// default configuration file for booger
 
   // exactly how booger will respond to nip-11 requests
   "nip11": {
-    "Name": "booger",
-    "Description": "a booger relay",
-    "PubKey": "",
-    "Contact": "",
-    "SupportedNIPs": [
+    "name": "booger",
+    "description": "a booger relay",
+    "pubkey": "",
+    "contact": "",
+    "supported_nips": [
       1,
       2,
       4,
@@ -72,8 +72,8 @@ const CONFIG = `// default configuration file for booger
       33,
       40
     ],
-    "Software": "https://github.com/stackernews/booger",
-    "Version": "${VERSION}"
+    "software": "https://github.com/stackernews/booger",
+    "version": "${VERSION}"
   },
 
   // configuration related to booger plugs
