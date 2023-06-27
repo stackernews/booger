@@ -25,18 +25,18 @@ self.onmessage = async ({ data }) => {
   }
 
   const { msgId, action, conn, data: dat } = data
-  const ip = conn.headers['x-forwarded-for']?.split(/\s*,\s*/)[0]
+  const ip = conn.headers['x-forwarded-for']?.split(/\s*,\s*/)[0] || 'NULL'
   let res
   try {
     switch (action) {
       case 'connect':
         // insert a new connection, or update the count
         // we use the connection limit as a sentinel for blocking
-        res = await pg`INSERT INTO conns (id, ip, headers)
-          VALUES (${conn.id}, ${ip}, ${conn.headers})
-          ON CONFLICT (id, ip) DO UPDATE
+        res = await pg`INSERT INTO conns (ip, headers)
+          VALUES (${ip}, ${conn.headers})
+          ON CONFLICT (ip) DO UPDATE
             SET count = LEAST(${LIMITS.maxConnections}, conns.count + 1)
-          RETURNING id, ip, count`
+          RETURNING ip, count`
         if (res?.at(0)?.count >= LIMITS.maxConnections) {
           throw new Error('blocked: too many connections')
         }
@@ -110,7 +110,7 @@ self.onmessage = async ({ data }) => {
         await pg.begin((pg) => [
           pg`UPDATE conns
             SET count = LEAST(${LIMITS.maxConnections - 2}, count - 1)
-            WHERE id = ${conn.id} OR ip IS NOT DISTINCT FROM ${ip}`,
+            WHERE ip IS NOT DISTINCT FROM ${ip}`,
           pg`DELETE FROM conns WHERE count < 0`,
         ])
         break
