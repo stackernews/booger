@@ -13,7 +13,7 @@
 
     // sub-secure-task adds restricted permissions via $DENO_PERMS then runs the deno task provided in $DENO_TASK
     // XXX the postgres module attempts to access an *abundance* of env vars related to postgres (and there's no way to silently deny them)
-    "sub-secure-task": "DENO_PERMS='--allow-net=127.0.0.1,localhost --allow-read=./booger.jsonc,./plugs --allow-write=./booger.jsonc --allow-env=HOSTNAME,PORT,DB,DB_STATS,DB_LIMITS,PGHOST,PGPORT,PGDATABASE,PGUSERNAME,PGUSER,PGPASSWORD,PGIDLE_TIMEOUT,PGCONNECT_TIMEOUT,PGMAX,PGMAX_LIFETIME,PGMAX_PIPELINE,PGSSL,PGBACKOFF,PGKEEP_ALIVE,PGPREPARE,PGDEBUG,PGFETCH_TYPES,PGPUBLICATIONS,PGTARGET_SESSION_ATTRS,PGTARGETSESSIONATTRS,USERNAME,USER,LOGNAME' deno task $DENO_TASK",
+    "sub-secure-task": "DENO_PERMS='--allow-net=127.0.0.1,localhost --allow-read=./booger.jsonc,./plugs,./index.html --allow-write=./booger.jsonc --allow-env=HOSTNAME,PORT,DB,DB_STATS,DB_LIMITS,PGHOST,PGPORT,PGDATABASE,PGUSERNAME,PGUSER,PGPASSWORD,PGIDLE_TIMEOUT,PGCONNECT_TIMEOUT,PGMAX,PGMAX_LIFETIME,PGMAX_PIPELINE,PGSSL,PGBACKOFF,PGKEEP_ALIVE,PGPREPARE,PGDEBUG,PGFETCH_TYPES,PGPUBLICATIONS,PGTARGET_SESSION_ATTRS,PGTARGETSESSIONATTRS,USERNAME,USER,LOGNAME' deno task $DENO_TASK",
     // sub-normal-task adds permissive permissions via $DENO_PERMS and runs the deno task provided in $DENO_TASK
     "sub-normal-task": "DENO_PERMS=-A deno task $DENO_TASK",
     // sub-run takes $DENO_EXT and $DENO_PERMS and runs deno run
