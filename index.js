@@ -84,7 +84,9 @@ try {
       return new Response(e.message, { status: 403 })
     }
 
-    const { socket: ws, response: res } = Deno.upgradeWebSocket(req)
+    const { socket: ws, response: res } = Deno.upgradeWebSocket(req, {
+      idleTimeout: 30,
+    })
     ws.booger = { id, headers }
     ws.onopen = () => {
       try {
